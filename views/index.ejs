@@ -30,11 +30,30 @@
       padding: 40px;
     }
 
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+
     h1 {
       color: #333;
-      margin-bottom: 30px;
-      text-align: center;
       font-size: 2em;
+    }
+
+    .logout-btn {
+      background: #e74c3c;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.9em;
+    }
+
+    .logout-btn:hover {
+      background: #c0392b;
     }
 
     .input-group {
@@ -240,6 +259,11 @@
         padding: 20px;
       }
 
+      .header {
+        flex-direction: column;
+        gap: 15px;
+      }
+
       h1 {
         font-size: 1.5em;
       }
@@ -265,7 +289,10 @@
 </head>
 <body>
   <div class="container">
-    <h1>📝 ToDoリスト</h1>
+    <div class="header">
+      <h1>📝 ToDoリスト</h1>
+      <button class="logout-btn" onclick="logout()">ログアウト</button>
+    </div>
 
     <div class="db-status">
       🗄️ PostgreSQL データベースに接続中...
@@ -321,6 +348,11 @@
   <script>
     let tasks = [];
     let filter = 'all';
+    const userId = new URLSearchParams(window.location.search).get('userId');
+
+    if (!userId) {
+      window.location.href = '/login';
+    }
 
     const getPriorityLabel = (priority) => {
       const labels = { 1: '🔴 高', 2: '🟡 中', 3: '🟢 低' };
@@ -341,9 +373,13 @@
       }, 5000);
     };
 
+    const logout = () => {
+      window.location.href = '/login';
+    };
+
     const loadTasks = async () => {
       try {
-        const response = await fetch('/api/tasks');
+        const response = await fetch(`/api/tasks?userId=${userId}`);
         if (!response.ok) throw new Error('Failed to load tasks');
         tasks = await response.json();
         render();
@@ -375,6 +411,7 @@
             title: input.value.trim(),
             deadline: deadline.value || null,
             priority: parseInt(priority.value),
+            userId: parseInt(userId),
           }),
         });
 
