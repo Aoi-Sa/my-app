@@ -1,17 +1,514 @@
 <!DOCTYPE html>
 <html lang="ja">
-<head><meta charset="UTF-8"><title>ユーザー一覧</title></head>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ToDoリスト - PostgreSQL版</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 600px;
+      width: 100%;
+      padding: 40px;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 30px;
+      text-align: center;
+      font-size: 2em;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 30px;
+    }
+
+    input[type="text"],
+    input[type="date"],
+    select {
+      flex: 1;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 1em;
+      transition: border-color 0.3s;
+    }
+
+    input[type="text"]:focus,
+    input[type="date"]:focus,
+    select:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    button {
+      padding: 12px 30px;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1em;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background: #5568d3;
+    }
+
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    .stat-box {
+      background: #f5f5f5;
+      padding: 15px;
+      border-radius: 8px;
+      border-left: 4px solid #667eea;
+    }
+
+    .stat-box h3 {
+      color: #666;
+      font-size: 0.9em;
+      margin-bottom: 5px;
+    }
+
+    .stat-box p {
+      color: #333;
+      font-size: 1.5em;
+      font-weight: bold;
+    }
+
+    .task-list {
+      list-style: none;
+    }
+
+    .task-item {
+      background: #f9f9f9;
+      padding: 15px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      border-left: 4px solid #667eea;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      transition: all 0.3s;
+    }
+
+    .task-item:hover {
+      background: #f0f0f0;
+      transform: translateX(5px);
+    }
+
+    .task-item.completed {
+      opacity: 0.6;
+      border-left-color: #4caf50;
+    }
+
+    .task-item.completed .task-text {
+      text-decoration: line-through;
+      color: #999;
+    }
+
+    .task-checkbox {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+    }
+
+    .task-content {
+      flex: 1;
+    }
+
+    .task-text {
+      color: #333;
+      font-weight: 500;
+      margin-bottom: 5px;
+    }
+
+    .task-meta {
+      font-size: 0.85em;
+      color: #999;
+    }
+
+    .priority-high {
+      color: #e74c3c;
+    }
+
+    .priority-medium {
+      color: #f39c12;
+    }
+
+    .priority-low {
+      color: #27ae60;
+    }
+
+    .task-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-delete {
+      background: #e74c3c;
+      padding: 6px 12px;
+      font-size: 0.9em;
+    }
+
+    .btn-delete:hover {
+      background: #c0392b;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #999;
+    }
+
+    .filters {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      padding: 8px 16px;
+      background: #f0f0f0;
+      color: #333;
+      border: 2px solid transparent;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .filter-btn.active {
+      background: #667eea;
+      color: white;
+      border-color: #667eea;
+    }
+
+    .db-status {
+      text-align: center;
+      padding: 10px;
+      margin-bottom: 20px;
+      background: #e8f5e9;
+      border-radius: 8px;
+      color: #2e7d32;
+      font-size: 0.9em;
+    }
+
+    .error-message {
+      background: #ffebee;
+      color: #c62828;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        padding: 20px;
+      }
+
+      h1 {
+        font-size: 1.5em;
+      }
+
+      .input-group {
+        flex-direction: column;
+      }
+
+      .stats {
+        grid-template-columns: 1fr;
+      }
+
+      .task-item {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .task-actions {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
 <body>
-  <h1>ユーザー一覧</h1>
-  <ul>
-    <% users.forEach(user => { %>
-      <li><%= user.name %></li>
-    <% }) %>
-  </ul>
-  <h2>ユーザー追加</h2>
-  <form action="/users" method="post">
-    <input type="text" name="name" placeholder="名前を入力" required>
-    <button type="submit">追加</button>
-  </form>
+  <div class="container">
+    <h1>📝 ToDoリスト</h1>
+
+    <div class="db-status">
+      🗄️ PostgreSQL データベースに接続中...
+    </div>
+
+    <div class="error-message" id="errorMessage"></div>
+
+    <!-- 入力フォーム -->
+    <div class="input-group">
+      <input type="text" id="taskInput" placeholder="新しいタスクを入力...">
+      <input type="date" id="deadlineInput">
+      <select id="priorityInput">
+        <option value="1">🔴 高</option>
+        <option value="2">🟡 中</option>
+        <option value="3" selected>🟢 低</option>
+      </select>
+      <button id="addBtn" onclick="addTask()">追加</button>
+    </div>
+
+    <!-- 統計情報 -->
+    <div class="stats">
+      <div class="stat-box">
+        <h3>📊 合計</h3>
+        <p id="totalCount">0</p>
+      </div>
+      <div class="stat-box">
+        <h3>✅ 完了</h3>
+        <p id="completedCount">0</p>
+      </div>
+      <div class="stat-box">
+        <h3>⏳ 未完了</h3>
+        <p id="remainingCount">0</p>
+      </div>
+    </div>
+
+    <!-- フィルター -->
+    <div class="filters">
+      <button class="filter-btn active" onclick="setFilter('all')">すべて</button>
+      <button class="filter-btn" onclick="setFilter('active')">未完了</button>
+      <button class="filter-btn" onclick="setFilter('completed')">完了</button>
+      <button class="filter-btn" onclick="setFilter('high')">高優先度</button>
+    </div>
+
+    <!-- タスクリスト -->
+    <ul class="task-list" id="taskList">
+      <div class="empty-state">
+        <p>📭 タスクはまだありません</p>
+        <p style="font-size: 0.9em; margin-top: 10px;">タスクを追加して始めましょう！</p>
+      </div>
+    </ul>
+  </div>
+
+  <script>
+    let tasks = [];
+    let filter = 'all';
+
+    const getPriorityLabel = (priority) => {
+      const labels = { 1: '🔴 高', 2: '🟡 中', 3: '🟢 低' };
+      return labels[priority] || '不明';
+    };
+
+    const getPriorityClass = (priority) => {
+      const classes = { 1: 'priority-high', 2: 'priority-medium', 3: 'priority-low' };
+      return classes[priority] || '';
+    };
+
+    const showError = (message) => {
+      const errorEl = document.getElementById('errorMessage');
+      errorEl.textContent = message;
+      errorEl.style.display = 'block';
+      setTimeout(() => {
+        errorEl.style.display = 'none';
+      }, 5000);
+    };
+
+    const loadTasks = async () => {
+      try {
+        const response = await fetch('/api/tasks');
+        if (!response.ok) throw new Error('Failed to load tasks');
+        tasks = await response.json();
+        render();
+        updateStats();
+      } catch (err) {
+        console.error(err);
+        showError('タスクの読み込みに失敗しました');
+      }
+    };
+
+    const addTask = async () => {
+      const input = document.getElementById('taskInput');
+      const deadline = document.getElementById('deadlineInput');
+      const priority = document.getElementById('priorityInput');
+      const addBtn = document.getElementById('addBtn');
+
+      if (!input.value.trim()) {
+        alert('タスクを入力してください');
+        return;
+      }
+
+      addBtn.disabled = true;
+
+      try {
+        const response = await fetch('/api/tasks', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: input.value.trim(),
+            deadline: deadline.value || null,
+            priority: parseInt(priority.value),
+          }),
+        });
+
+        if (!response.ok) throw new Error('Failed to create task');
+
+        const newTask = await response.json();
+        tasks.push(newTask);
+        render();
+        updateStats();
+
+        input.value = '';
+        deadline.value = '';
+        priority.value = '3';
+      } catch (err) {
+        console.error(err);
+        showError('タスクの作成に失敗しました');
+      } finally {
+        addBtn.disabled = false;
+      }
+    };
+
+    const toggleTask = async (id) => {
+      const task = tasks.find(t => t.id === id);
+      if (!task) return;
+
+      try {
+        const response = await fetch(`/api/tasks/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...task,
+            is_completed: !task.is_completed,
+          }),
+        });
+
+        if (!response.ok) throw new Error('Failed to update task');
+
+        task.is_completed = !task.is_completed;
+        render();
+        updateStats();
+      } catch (err) {
+        console.error(err);
+        showError('タスクの更新に失敗しました');
+      }
+    };
+
+    const deleteTask = async (id) => {
+      if (!confirm('このタスクを削除してもよろしいですか？')) return;
+
+      try {
+        const response = await fetch(`/api/tasks/${id}`, {
+          method: 'DELETE',
+        });
+
+        if (!response.ok) throw new Error('Failed to delete task');
+
+        tasks = tasks.filter(t => t.id !== id);
+        render();
+        updateStats();
+      } catch (err) {
+        console.error(err);
+        showError('タスクの削除に失敗しました');
+      }
+    };
+
+    const setFilter = (newFilter) => {
+      filter = newFilter;
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      event.target.classList.add('active');
+      render();
+    };
+
+    const getFilteredTasks = () => {
+      return tasks.filter(task => {
+        if (filter === 'active') return !task.is_completed;
+        if (filter === 'completed') return task.is_completed;
+        if (filter === 'high') return task.priority === 1 && !task.is_completed;
+        return true;
+      });
+    };
+
+    const updateStats = () => {
+      document.getElementById('totalCount').textContent = tasks.length;
+      document.getElementById('completedCount').textContent = tasks.filter(t => t.is_completed).length;
+      document.getElementById('remainingCount').textContent = tasks.filter(t => !t.is_completed).length;
+    };
+
+    const formatDate = (dateStr) => {
+      if (!dateStr) return '';
+      const date = new Date(dateStr);
+      return date.toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' });
+    };
+
+    const render = () => {
+      const taskList = document.getElementById('taskList');
+      const filtered = getFilteredTasks();
+
+      if (filtered.length === 0) {
+        taskList.innerHTML = `
+          <div class="empty-state">
+            <p>📭 タスクはまだありません</p>
+            <p style="font-size: 0.9em; margin-top: 10px;">タスクを追加して始めましょう！</p>
+          </div>
+        `;
+        return;
+      }
+
+      taskList.innerHTML = filtered.map(task => `
+        <li class="task-item ${task.is_completed ? 'completed' : ''}">
+          <input type="checkbox" class="task-checkbox" ${task.is_completed ? 'checked' : ''} 
+                 onchange="toggleTask(${task.id})">
+          <div class="task-content">
+            <div class="task-text">${task.title}</div>
+            <div class="task-meta">
+              <span class="${getPriorityClass(task.priority)}">${getPriorityLabel(task.priority)}</span>
+              ${task.deadline ? ` • 期限: ${formatDate(task.deadline)}` : ''}
+            </div>
+          </div>
+          <div class="task-actions">
+            <button class="btn-delete" onclick="deleteTask(${task.id})">削除</button>
+          </div>
+        </li>
+      `).join('');
+    };
+
+    // 初期化
+    loadTasks();
+
+    // Enterキーでタスク追加
+    document.getElementById('taskInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') addTask();
+    });
+  </script>
 </body>
 </html>
