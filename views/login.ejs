@@ -49,8 +49,7 @@
     }
 
     input[type="email"],
-    input[type="password"],
-    input[type="text"] {
+    input[type="password"] {
       width: 100%;
       padding: 12px;
       border: 2px solid #e0e0e0;
@@ -60,8 +59,7 @@
     }
 
     input[type="email"]:focus,
-    input[type="password"]:focus,
-    input[type="text"]:focus {
+    input[type="password"]:focus {
       outline: none;
       border-color: #667eea;
     }
@@ -163,9 +161,10 @@
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
 
-      submitBtn.disabled = true;
       errorEl.style.display = 'none';
       successEl.style.display = 'none';
+
+      submitBtn.disabled = true;
 
       try {
         const response = await fetch('/api/auth/login', {
@@ -183,10 +182,10 @@
           return;
         }
 
-        successEl.textContent = 'ログインに成功しました！';
+        successEl.textContent = 'ログインしました！';
         successEl.style.display = 'block';
 
-        // 2秒後にリダイレクト
+        // 1秒後にリダイレクト
         setTimeout(() => {
           window.location.href = `/?userId=${data.userId}`;
         }, 1000);

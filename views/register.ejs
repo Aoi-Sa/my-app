@@ -213,7 +213,7 @@
         successEl.textContent = 'アカウントが作成されました！ログインしています...';
         successEl.style.display = 'block';
 
-        // 2秒後にリダイレクト
+        // 1秒後にリダイレクト
         setTimeout(() => {
           window.location.href = `/?userId=${data.userId}`;
         }, 1000);
