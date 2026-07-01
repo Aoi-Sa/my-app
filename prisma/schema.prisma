@@ -1,13 +1,66 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
+  adapter  = "pg"
 }
 
 datasource db {
   provider = "postgresql"
 }
 
+// ユーザーテーブル（認証用）
 model User {
-  id   Int    @id @default(autoincrement())
-  name String
+  id        Int       @id @default(autoincrement())
+  email     String    @unique
+  password  String
+  name      String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  // リレーション
+  tasks     Task[]
+  routines  Routine[]
+
+  @@map("users")
+}
+
+// タスクテーブル
+model Task {
+  id              Int       @id @default(autoincrement())
+  title           String
+  deadline        DateTime?
+  priority        Int       @default(3)
+  duration_minutes Int      @default(0)
+  is_completed    Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // ユーザーとの関連
+  userId          Int
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // 親子階層（自己参照）
+  parent_id       Int?
+  parent          Task?     @relation("ParentChild", fields: [parent_id], references: [id], onDelete: Cascade)
+  children        Task[]    @relation("ParentChild")
+
+  @@index([userId])
+  @@index([parent_id])
+  @@map("tasks")
+}
+
+// ルーチンテーブル
+model Routine {
+  id            Int       @id @default(autoincrement())
+  title         String
+  interval_days Int
+  last_run_at   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // ユーザーとの関連
+  userId        Int
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("routines")
 }
