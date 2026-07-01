@@ -24,7 +24,7 @@ app.use(express.json());
 
 // セッション用のシンプルミドルウェア
 app.use((req: any, res: any, next: any) => {
-  req.userId = req.query.userId || req.body.userId || null;
+  req.userId = req.query.userId || (req.body && req.body.userId) || null;
   if (req.path === "/login" || req.path === "/register") {
     req.userId = null;
   }
@@ -45,7 +45,7 @@ app.get("/register", (req, res) => {
 
 // ホームページ（ログイン後）
 app.get("/", (req: any, res) => {
-  const userId = req.query.userId || req.cookies?.userId;
+  const userId = req.query.userId || (req.cookies && req.cookies.userId);
   if (!userId) {
     return res.redirect("/login");
   }
