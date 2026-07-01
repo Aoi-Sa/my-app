@@ -64,6 +64,7 @@
 
     input[type="text"],
     input[type="date"],
+    input[type="number"],
     select {
       flex: 1;
       padding: 12px;
@@ -75,6 +76,7 @@
 
     input[type="text"]:focus,
     input[type="date"]:focus,
+    input[type="number"]:focus,
     select:focus {
       outline: none;
       border-color: #667eea;
@@ -158,6 +160,22 @@
       color: #999;
     }
 
+    /* カウントダウンの色分け */
+    .task-item.urgent {
+      border-left-color: #e74c3c;
+      background: #fff5f5;
+    }
+
+    .task-item.warning {
+      border-left-color: #f39c12;
+      background: #fffbf0;
+    }
+
+    .task-item.safe {
+      border-left-color: #27ae60;
+      background: #f5fff5;
+    }
+
     .task-checkbox {
       width: 20px;
       height: 20px;
@@ -177,18 +195,51 @@
     .task-meta {
       font-size: 0.85em;
       color: #999;
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
     }
 
     .priority-high {
       color: #e74c3c;
+      font-weight: bold;
     }
 
     .priority-medium {
       color: #f39c12;
+      font-weight: bold;
     }
 
     .priority-low {
       color: #27ae60;
+      font-weight: bold;
+    }
+
+    .countdown {
+      background: #f0f0f0;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-weight: bold;
+    }
+
+    .countdown.urgent {
+      background: #ffebee;
+      color: #e74c3c;
+    }
+
+    .countdown.warning {
+      background: #fffbf0;
+      color: #f39c12;
+    }
+
+    .countdown.safe {
+      background: #f5fff5;
+      color: #27ae60;
+    }
+
+    .countdown.overdue {
+      background: #ffebee;
+      color: #c0392b;
     }
 
     .task-actions {
@@ -204,6 +255,16 @@
 
     .btn-delete:hover {
       background: #c0392b;
+    }
+
+    .btn-subtask {
+      background: #3498db;
+      padding: 6px 12px;
+      font-size: 0.9em;
+    }
+
+    .btn-subtask:hover {
+      background: #2980b9;
     }
 
     .empty-state {
@@ -252,6 +313,56 @@
       border-radius: 8px;
       margin-bottom: 20px;
       display: none;
+    }
+
+    .subtask-list {
+      margin-left: 40px;
+      margin-top: 10px;
+      list-style: none;
+    }
+
+    .subtask-item {
+      background: #f5f5f5;
+      padding: 10px;
+      margin-bottom: 5px;
+      border-radius: 6px;
+      border-left: 3px solid #3498db;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.95em;
+    }
+
+    .subtask-item.completed {
+      opacity: 0.5;
+    }
+
+    .subtask-item.completed .subtask-text {
+      text-decoration: line-through;
+    }
+
+    .subtask-text {
+      flex: 1;
+      color: #555;
+    }
+
+    .subtask-actions {
+      display: flex;
+      gap: 5px;
+    }
+
+    .btn-small {
+      padding: 3px 8px;
+      font-size: 0.8em;
+      background: #e74c3c;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .btn-small:hover {
+      background: #c0392b;
     }
 
     @media (max-width: 600px) {
@@ -304,6 +415,7 @@
     <div class="input-group">
       <input type="text" id="taskInput" placeholder="新しいタスクを入力...">
       <input type="date" id="deadlineInput">
+      <input type="number" id="durationInput" placeholder="想定時間(分)" min="0">
       <select id="priorityInput">
         <option value="1">🔴 高</option>
         <option value="2">🟡 中</option>
@@ -333,7 +445,7 @@
       <button class="filter-btn active" onclick="setFilter('all')">すべて</button>
       <button class="filter-btn" onclick="setFilter('active')">未完了</button>
       <button class="filter-btn" onclick="setFilter('completed')">完了</button>
-      <button class="filter-btn" onclick="setFilter('high')">高優先度</button>
+      <button class="filter-btn" onclick="setFilter('urgent')">緊急</button>
     </div>
 
     <!-- タスクリスト -->
@@ -362,6 +474,36 @@
     const getPriorityClass = (priority) => {
       const classes = { 1: 'priority-high', 2: 'priority-medium', 3: 'priority-low' };
       return classes[priority] || '';
+    };
+
+    // カウントダウン計算
+    const getCountdownInfo = (deadline) => {
+      if (!deadline) return { text: '期限なし', class: '', daysLeft: null };
+
+      const now = new Date();
+      const deadlineDate = new Date(deadline);
+      const diffTime = deadlineDate - now;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+      if (diffDays < 0) {
+        return { text: `⚠️ 期限切れ ${Math.abs(diffDays)}日前`, class: 'overdue', daysLeft: diffDays };
+      } else if (diffDays === 0) {
+        return { text: '⏰ 本日期限', class: 'urgent', daysLeft: 0 };
+      } else if (diffDays <= 3) {
+        return { text: `🔥 あと${diffDays}日`, class: 'urgent', daysLeft: diffDays };
+      } else if (diffDays <= 7) {
+        return { text: `⚡ あと${diffDays}日`, class: 'warning', daysLeft: diffDays };
+      } else {
+        return { text: `📅 あと${diffDays}日`, class: 'safe', daysLeft: diffDays };
+      }
+    };
+
+    // 時間による色分け
+    const getDurationClass = (duration) => {
+      if (!duration || duration === 0) return '';
+      if (duration <= 15) return 'safe';
+      if (duration <= 60) return 'warning';
+      return 'urgent';
     };
 
     const showError = (message) => {
@@ -393,6 +535,7 @@
     const addTask = async () => {
       const input = document.getElementById('taskInput');
       const deadline = document.getElementById('deadlineInput');
+      const duration = document.getElementById('durationInput');
       const priority = document.getElementById('priorityInput');
       const addBtn = document.getElementById('addBtn');
 
@@ -411,6 +554,7 @@
             title: input.value.trim(),
             deadline: deadline.value || null,
             priority: parseInt(priority.value),
+            duration_minutes: parseInt(duration.value) || 0,
             userId: parseInt(userId),
           }),
         });
@@ -424,6 +568,7 @@
 
         input.value = '';
         deadline.value = '';
+        duration.value = '';
         priority.value = '3';
       } catch (err) {
         console.error(err);
@@ -488,17 +633,21 @@
 
     const getFilteredTasks = () => {
       return tasks.filter(task => {
+        if (task.parent_id) return false; // 親タスクのみ表示
         if (filter === 'active') return !task.is_completed;
         if (filter === 'completed') return task.is_completed;
-        if (filter === 'high') return task.priority === 1 && !task.is_completed;
+        if (filter === 'urgent') {
+          const countdown = getCountdownInfo(task.deadline);
+          return !task.is_completed && (countdown.class === 'urgent' || countdown.class === 'overdue');
+        }
         return true;
       });
     };
 
     const updateStats = () => {
-      document.getElementById('totalCount').textContent = tasks.length;
-      document.getElementById('completedCount').textContent = tasks.filter(t => t.is_completed).length;
-      document.getElementById('remainingCount').textContent = tasks.filter(t => !t.is_completed).length;
+      document.getElementById('totalCount').textContent = tasks.filter(t => !t.parent_id).length;
+      document.getElementById('completedCount').textContent = tasks.filter(t => t.is_completed && !t.parent_id).length;
+      document.getElementById('remainingCount').textContent = tasks.filter(t => !t.is_completed && !t.parent_id).length;
     };
 
     const formatDate = (dateStr) => {
@@ -521,22 +670,75 @@
         return;
       }
 
-      taskList.innerHTML = filtered.map(task => `
-        <li class="task-item ${task.is_completed ? 'completed' : ''}">
-          <input type="checkbox" class="task-checkbox" ${task.is_completed ? 'checked' : ''} 
-                 onchange="toggleTask(${task.id})">
-          <div class="task-content">
-            <div class="task-text">${task.title}</div>
-            <div class="task-meta">
-              <span class="${getPriorityClass(task.priority)}">${getPriorityLabel(task.priority)}</span>
-              ${task.deadline ? ` • 期限: ${formatDate(task.deadline)}` : ''}
+      taskList.innerHTML = filtered.map(task => {
+        const countdown = getCountdownInfo(task.deadline);
+        const durationClass = getDurationClass(task.duration_minutes);
+        const urgencyClass = countdown.class || durationClass || '';
+
+        const subtasks = tasks.filter(t => t.parent_id === task.id);
+        const subtaskHtml = subtasks.length > 0 ? `
+          <ul class="subtask-list">
+            ${subtasks.map(subtask => `
+              <li class="subtask-item ${subtask.is_completed ? 'completed' : ''}">
+                <input type="checkbox" style="width: 16px; height: 16px;" ${subtask.is_completed ? 'checked' : ''} 
+                       onchange="toggleTask(${subtask.id})">
+                <div class="subtask-text">${subtask.title}</div>
+                <div class="subtask-actions">
+                  <button class="btn-small" onclick="deleteTask(${subtask.id})">削除</button>
+                </div>
+              </li>
+            `).join('')}
+          </ul>
+        ` : '';
+
+        return `
+          <li class="task-item ${task.is_completed ? 'completed' : ''} ${urgencyClass}">
+            <input type="checkbox" class="task-checkbox" ${task.is_completed ? 'checked' : ''} 
+                   onchange="toggleTask(${task.id})">
+            <div class="task-content">
+              <div class="task-text">${task.title}</div>
+              <div class="task-meta">
+                <span class="${getPriorityClass(task.priority)}">${getPriorityLabel(task.priority)}</span>
+                ${task.deadline ? `<span class="countdown ${countdown.class}">${countdown.text}</span>` : ''}
+                ${task.duration_minutes > 0 ? `<span>⏱️ ${task.duration_minutes}分</span>` : ''}
+              </div>
+              ${subtaskHtml}
             </div>
-          </div>
-          <div class="task-actions">
-            <button class="btn-delete" onclick="deleteTask(${task.id})">削除</button>
-          </div>
-        </li>
-      `).join('');
+            <div class="task-actions">
+              <button class="btn-subtask" onclick="addSubtask(${task.id})">子タスク</button>
+              <button class="btn-delete" onclick="deleteTask(${task.id})">削除</button>
+            </div>
+          </li>
+        `;
+      }).join('');
+    };
+
+    const addSubtask = async (parentId) => {
+      const title = prompt('子タスクの名前を入力してください:');
+      if (!title) return;
+
+      try {
+        const response = await fetch('/api/tasks', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title,
+            parent_id: parentId,
+            userId: parseInt(userId),
+            deadline: null,
+            duration_minutes: 0,
+          }),
+        });
+
+        if (!response.ok) throw new Error('Failed to create subtask');
+
+        const newSubtask = await response.json();
+        tasks.push(newSubtask);
+        render();
+      } catch (err) {
+        console.error(err);
+        showError('子タスクの作成に失敗しました');
+      }
     };
 
     // 初期化
@@ -546,6 +748,11 @@
     document.getElementById('taskInput').addEventListener('keypress', (e) => {
       if (e.key === 'Enter') addTask();
     });
+
+    // 1分ごとにカウントダウンを更新
+    setInterval(() => {
+      render();
+    }, 60000);
   </script>
 </body>
 </html>
