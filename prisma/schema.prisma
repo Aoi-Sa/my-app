@@ -1,3 +1,6 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
 generator client {
   provider = "prisma-client-js"
   adapter  = "pg"
@@ -28,7 +31,7 @@ model Task {
   id              Int       @id @default(autoincrement())
   title           String
   deadline        DateTime?
-  priority        Int       @default(3)
+  priority        Int       @default(3) // 1-5, 低から高
   duration_minutes Int      @default(0)
   is_completed    Boolean   @default(false)
   createdAt       DateTime  @default(now())
