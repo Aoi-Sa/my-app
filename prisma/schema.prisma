@@ -22,6 +22,7 @@ model User {
   // リレーション
   tasks     Task[]
   routines  Routine[]
+  files     TaskFile[]
 
   @@map("users")
 }
@@ -31,7 +32,7 @@ model Task {
   id              Int       @id @default(autoincrement())
   title           String
   deadline        DateTime?
-  priority        Int       @default(3) // 1-5, 低から高
+  priority        Int       @default(3) // 1-3, 低から高
   duration_minutes Int      @default(0)
   is_completed    Boolean   @default(false)
   createdAt       DateTime  @default(now())
@@ -46,17 +47,23 @@ model Task {
   parent          Task?     @relation("ParentChild", fields: [parent_id], references: [id], onDelete: Cascade)
   children        Task[]    @relation("ParentChild")
 
+  // ファイル紐付け
+  files           TaskFile[]
+
   @@index([userId])
   @@index([parent_id])
   @@map("tasks")
 }
 
-// ルーチンテーブル
+// ルーチンテーブル（ルーティン自動生成用）
 model Routine {
   id            Int       @id @default(autoincrement())
   title         String
-  interval_days Int
+  interval_days Int       // 何日ごとに生成するか
+  priority      Int       @default(3)
+  duration_minutes Int    @default(0)
   last_run_at   DateTime?
+  is_active     Boolean   @default(true)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -66,4 +73,26 @@ model Routine {
 
   @@index([userId])
   @@map("routines")
+}
+
+// タスクに紐付けたファイル
+model TaskFile {
+  id        Int       @id @default(autoincrement())
+  filename  String
+  filepath  String    // サーバーでの保存パス
+  filesize  Int
+  mimetype  String
+  createdAt DateTime  @default(now())
+
+  // タスクとの関連
+  taskId    Int
+  task      Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  // ユーザーとの関連
+  userId    Int
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+  @@index([userId])
+  @@map("task_files")
 }
