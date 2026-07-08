@@ -74,7 +74,7 @@
     }
 
     .stat-box {
-      background: #f9f9f9;
+      background: #f5f5f5;
       padding: 20px;
       border-radius: 12px;
       text-align: center;
@@ -149,7 +149,7 @@
     }
 
     .task-item {
-      background: #f9f9f9;
+      background: #f0f0f0;
       padding: 20px;
       margin-bottom: 15px;
       border-radius: 12px;
@@ -162,14 +162,14 @@
     }
 
     .task-item:hover {
-      background: #fff5fb;
+      background: #e8e8e8;
       transform: translateX(5px);
-      box-shadow: 0 4px 12px rgba(255, 51, 153, 0.1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     }
 
     .task-item.completed {
       opacity: 0.6;
-      background: #f5f5f5;
+      background: #e8e8e8;
     }
 
     .task-item.completed .task-text {
@@ -179,17 +179,22 @@
 
     .task-item.urgent {
       border-left-color: #e74c3c;
-      background: #fff5f5;
+      background: #f5e8e8;
     }
 
     .task-item.warning {
       border-left-color: #f39c12;
-      background: #fffbf0;
+      background: #f5ebe8;
     }
 
     .task-item.safe {
       border-left-color: #27ae60;
-      background: #f5fff5;
+      background: #e8f0e8;
+    }
+
+    .task-item.critical {
+      border-left-color: #c0392b;
+      background: #f0e8e8;
     }
 
     .task-checkbox {
@@ -217,6 +222,11 @@
       display: flex;
       gap: 15px;
       flex-wrap: wrap;
+    }
+
+    .priority-critical {
+      color: #c0392b;
+      font-weight: 600;
     }
 
     .priority-high {
@@ -453,7 +463,7 @@
     }
 
     .subtask-item {
-      background: #f5f5f5;
+      background: #e8e8e8;
       padding: 12px;
       margin-bottom: 8px;
       border-radius: 8px;
@@ -558,9 +568,10 @@
         <div class="form-group">
           <label for="priorityInput">優先度</label>
           <select id="priorityInput">
-            <option value="3">🟢 低</option>
-            <option value="2">🟡 中</option>
-            <option value="1">🔴 高</option>
+            <option value="4">🟢 低</option>
+            <option value="3">🟡 中</option>
+            <option value="2">🔴 高</option>
+            <option value="1">💣️ 💥 超緊急</option>
           </select>
         </div>
 
@@ -582,12 +593,12 @@
     }
 
     const getPriorityLabel = (priority) => {
-      const labels = { 1: '🔴 高', 2: '🟡 中', 3: '🟢 低' };
+      const labels = { 1: '💣️ 💥 超緊急', 2: '🔴 高', 3: '🟡 中', 4: '🟢 低' };
       return labels[priority] || '不明';
     };
 
     const getPriorityClass = (priority) => {
-      const classes = { 1: 'priority-high', 2: 'priority-medium', 3: 'priority-low' };
+      const classes = { 1: 'priority-critical', 2: 'priority-high', 3: 'priority-medium', 4: 'priority-low' };
       return classes[priority] || '';
     };
 
@@ -634,7 +645,7 @@
       document.getElementById('taskInput').value = '';
       document.getElementById('deadlineInput').value = '';
       document.getElementById('durationInput').value = '';
-      document.getElementById('priorityInput').value = '3';
+      document.getElementById('priorityInput').value = '4';
     };
 
     const handleAddTask = async (e) => {
@@ -749,7 +760,7 @@
         if (filter === 'completed') return task.is_completed;
         if (filter === 'urgent') {
           const countdown = getCountdownInfo(task.deadline);
-          return !task.is_completed && (countdown.class === 'urgent' || countdown.class === 'overdue');
+          return !task.is_completed && (countdown.class === 'urgent' || countdown.class === 'overdue' || task.priority === 1);
         }
         return true;
       });
@@ -765,6 +776,12 @@
       if (!dateStr) return '';
       const date = new Date(dateStr);
       return date.toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' });
+    };
+
+    const getUrgencyClass = (task) => {
+      if (task.priority === 1) return 'critical';
+      const countdown = getCountdownInfo(task.deadline);
+      return countdown.class || '';
     };
 
     const render = () => {
@@ -783,7 +800,7 @@
 
       taskList.innerHTML = filtered.map(task => {
         const countdown = getCountdownInfo(task.deadline);
-        const urgencyClass = countdown.class || '';
+        const urgencyClass = getUrgencyClass(task);
 
         const subtasks = tasks.filter(t => t.parent_id === task.id);
         const subtaskHtml = subtasks.length > 0 ? `
