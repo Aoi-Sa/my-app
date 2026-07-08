@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ToDoリスト - PostgreSQL版</title>
+  <title>ToDoリスト</title>
   <style>
     * {
       margin: 0;
@@ -12,94 +12,58 @@
     }
 
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      font-family: '游ゴシック体', 'YuGothic', '游ゴシック', sans-serif;
+      background: #ffffff;
       min-height: 100vh;
       display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
+      color: #000;
     }
 
-    .container {
-      background: white;
-      border-radius: 15px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-      max-width: 600px;
+    .main-container {
+      display: flex;
+      width: 100%;
+      height: 100vh;
+    }
+
+    /* 左側：タスクリスト */
+    .left-panel {
       width: 100%;
       padding: 40px;
+      overflow-y: auto;
+      background: #ffffff;
     }
 
-    .header {
+    /* トップバー */
+    .top-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 30px;
+      margin-bottom: 40px;
     }
 
     h1 {
-      color: #333;
-      font-size: 2em;
+      font-size: 2.5em;
+      font-weight: 600;
+      color: #000;
     }
 
     .logout-btn {
-      background: #e74c3c;
+      background: #FF3399;
       color: white;
       border: none;
-      padding: 8px 16px;
+      padding: 10px 20px;
       border-radius: 8px;
       cursor: pointer;
-      font-size: 0.9em;
+      font-size: 0.95em;
+      font-family: '游ゴシック体', 'YuGothic', sans-serif;
+      font-weight: 500;
+      transition: all 0.3s;
     }
 
     .logout-btn:hover {
-      background: #c0392b;
-    }
-
-    .input-group {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 30px;
-    }
-
-    input[type="text"],
-    input[type="date"],
-    input[type="number"],
-    select {
-      flex: 1;
-      padding: 12px;
-      border: 2px solid #e0e0e0;
-      border-radius: 8px;
-      font-size: 1em;
-      transition: border-color 0.3s;
-    }
-
-    input[type="text"]:focus,
-    input[type="date"]:focus,
-    input[type="number"]:focus,
-    select:focus {
-      outline: none;
-      border-color: #667eea;
-    }
-
-    button {
-      padding: 12px 30px;
-      background: #667eea;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 1em;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-
-    button:hover {
-      background: #5568d3;
-    }
-
-    button:disabled {
-      background: #ccc;
-      cursor: not-allowed;
+      background: #e60080;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(255, 51, 153, 0.3);
     }
 
     .stats {
@@ -107,26 +71,77 @@
       grid-template-columns: repeat(3, 1fr);
       gap: 15px;
       margin-bottom: 30px;
-      text-align: center;
     }
 
     .stat-box {
-      background: #f5f5f5;
-      padding: 15px;
-      border-radius: 8px;
-      border-left: 4px solid #667eea;
+      background: #f9f9f9;
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
+      border-bottom: 3px solid #FF3399;
     }
 
     .stat-box h3 {
       color: #666;
       font-size: 0.9em;
-      margin-bottom: 5px;
+      margin-bottom: 8px;
+      font-weight: 500;
     }
 
     .stat-box p {
-      color: #333;
-      font-size: 1.5em;
-      font-weight: bold;
+      color: #FF3399;
+      font-size: 2em;
+      font-weight: 700;
+    }
+
+    .filters {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      padding: 8px 16px;
+      background: #f5f5f5;
+      color: #000;
+      border: 2px solid transparent;
+      border-radius: 20px;
+      cursor: pointer;
+      font-family: '游ゴシック体', 'YuGothic', sans-serif;
+      font-weight: 500;
+      transition: all 0.3s;
+    }
+
+    .filter-btn.active {
+      background: #FF3399;
+      color: white;
+      border-color: #FF3399;
+    }
+
+    .filter-btn:hover {
+      background: #FFB3D9;
+      color: #000;
+    }
+
+    .add-btn {
+      margin-left: auto;
+      background: #FF3399;
+      color: white;
+      padding: 8px 20px;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      font-family: '游ゴシック体', 'YuGothic', sans-serif;
+      font-weight: 600;
+      font-size: 1em;
+      transition: all 0.3s;
+    }
+
+    .add-btn:hover {
+      background: #e60080;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(255, 51, 153, 0.3);
     }
 
     .task-list {
@@ -135,24 +150,26 @@
 
     .task-item {
       background: #f9f9f9;
-      padding: 15px;
-      margin-bottom: 10px;
-      border-radius: 8px;
-      border-left: 4px solid #667eea;
+      padding: 20px;
+      margin-bottom: 15px;
+      border-radius: 12px;
+      border-left: 4px solid #FF3399;
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       gap: 15px;
       transition: all 0.3s;
+      cursor: pointer;
     }
 
     .task-item:hover {
-      background: #f0f0f0;
+      background: #fff5fb;
       transform: translateX(5px);
+      box-shadow: 0 4px 12px rgba(255, 51, 153, 0.1);
     }
 
     .task-item.completed {
       opacity: 0.6;
-      border-left-color: #4caf50;
+      background: #f5f5f5;
     }
 
     .task-item.completed .task-text {
@@ -160,7 +177,6 @@
       color: #999;
     }
 
-    /* カウントダウンの色分け */
     .task-item.urgent {
       border-left-color: #e74c3c;
       background: #fff5f5;
@@ -177,9 +193,11 @@
     }
 
     .task-checkbox {
-      width: 20px;
-      height: 20px;
+      width: 22px;
+      height: 22px;
       cursor: pointer;
+      margin-top: 2px;
+      accent-color: #FF3399;
     }
 
     .task-content {
@@ -187,14 +205,15 @@
     }
 
     .task-text {
-      color: #333;
-      font-weight: 500;
-      margin-bottom: 5px;
+      color: #000;
+      font-weight: 600;
+      font-size: 1.05em;
+      margin-bottom: 8px;
     }
 
     .task-meta {
-      font-size: 0.85em;
-      color: #999;
+      font-size: 0.9em;
+      color: #666;
       display: flex;
       gap: 15px;
       flex-wrap: wrap;
@@ -202,39 +221,25 @@
 
     .priority-high {
       color: #e74c3c;
-      font-weight: bold;
+      font-weight: 600;
     }
 
     .priority-medium {
       color: #f39c12;
-      font-weight: bold;
+      font-weight: 600;
     }
 
     .priority-low {
       color: #27ae60;
-      font-weight: bold;
+      font-weight: 600;
     }
 
     .countdown {
-      background: #f0f0f0;
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-weight: bold;
-    }
-
-    .countdown.urgent {
-      background: #ffebee;
-      color: #e74c3c;
-    }
-
-    .countdown.warning {
-      background: #fffbf0;
-      color: #f39c12;
-    }
-
-    .countdown.safe {
-      background: #f5fff5;
-      color: #27ae60;
+      background: #FFE6F0;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-weight: 600;
+      color: #FF3399;
     }
 
     .countdown.overdue {
@@ -247,86 +252,212 @@
       gap: 8px;
     }
 
-    .btn-delete {
-      background: #e74c3c;
+    .btn-small {
       padding: 6px 12px;
-      font-size: 0.9em;
+      font-size: 0.85em;
+      background: #FF3399;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: '游ゴシック体', 'YuGothic', sans-serif;
+      font-weight: 500;
+      transition: all 0.3s;
+    }
+
+    .btn-small:hover {
+      background: #e60080;
+      transform: translateY(-2px);
+    }
+
+    .btn-delete {
+      background: #999;
     }
 
     .btn-delete:hover {
-      background: #c0392b;
-    }
-
-    .btn-subtask {
-      background: #3498db;
-      padding: 6px 12px;
-      font-size: 0.9em;
-    }
-
-    .btn-subtask:hover {
-      background: #2980b9;
+      background: #666;
     }
 
     .empty-state {
       text-align: center;
-      padding: 40px 20px;
+      padding: 60px 20px;
       color: #999;
     }
 
-    .filters {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
+    .empty-state p {
+      font-size: 1.1em;
+      margin-bottom: 10px;
     }
 
-    .filter-btn {
-      padding: 8px 16px;
-      background: #f0f0f0;
-      color: #333;
-      border: 2px solid transparent;
-      border-radius: 20px;
+    /* モーダル */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      animation: fadeIn 0.3s;
+    }
+
+    .modal.show {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .modal-content {
+      background: white;
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      width: 90%;
+      max-width: 500px;
+      animation: slideUp 0.3s;
+    }
+
+    @keyframes slideUp {
+      from { 
+        transform: translateY(30px);
+        opacity: 0;
+      }
+      to { 
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .modal-header {
+      font-size: 1.8em;
+      font-weight: 700;
+      margin-bottom: 30px;
+      color: #000;
+    }
+
+    .form-group {
+      margin-bottom: 25px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #000;
+      font-size: 0.95em;
+    }
+
+    input[type="text"],
+    input[type="date"],
+    input[type="number"],
+    select {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #f0f0f0;
+      border-radius: 8px;
+      font-size: 1em;
+      font-family: '游ゴシック体', 'YuGothic', sans-serif;
+      color: #000;
+      transition: all 0.3s;
+    }
+
+    input[type="text"]:focus,
+    input[type="date"]:focus,
+    input[type="number"]:focus,
+    select:focus {
+      outline: none;
+      border-color: #FF3399;
+      box-shadow: 0 0 0 3px rgba(255, 51, 153, 0.1);
+    }
+
+    .modal-footer {
+      display: flex;
+      gap: 15px;
+      margin-top: 30px;
+    }
+
+    .btn-submit {
+      flex: 1;
+      padding: 14px;
+      background: #FF3399;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1em;
+      font-family: '游ゴシック体', 'YuGothic', sans-serif;
+      font-weight: 600;
       cursor: pointer;
       transition: all 0.3s;
     }
 
-    .filter-btn.active {
-      background: #667eea;
-      color: white;
-      border-color: #667eea;
+    .btn-submit:hover {
+      background: #e60080;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(255, 51, 153, 0.3);
+    }
+
+    .btn-submit:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-cancel {
+      flex: 1;
+      padding: 14px;
+      background: #f5f5f5;
+      color: #000;
+      border: 2px solid #f0f0f0;
+      border-radius: 8px;
+      font-size: 1em;
+      font-family: '游ゴシック体', 'YuGothic', sans-serif;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-cancel:hover {
+      background: #e8e8e8;
     }
 
     .db-status {
       text-align: center;
-      padding: 10px;
+      padding: 12px;
       margin-bottom: 20px;
-      background: #e8f5e9;
+      background: #f0f0f0;
       border-radius: 8px;
-      color: #2e7d32;
+      color: #666;
       font-size: 0.9em;
     }
 
     .error-message {
-      background: #ffebee;
-      color: #c62828;
-      padding: 10px;
+      background: #ffe8e8;
+      color: #c0392b;
+      padding: 12px;
       border-radius: 8px;
       margin-bottom: 20px;
       display: none;
+      font-weight: 500;
     }
 
     .subtask-list {
-      margin-left: 40px;
-      margin-top: 10px;
+      margin-left: 20px;
+      margin-top: 12px;
       list-style: none;
     }
 
     .subtask-item {
       background: #f5f5f5;
-      padding: 10px;
-      margin-bottom: 5px;
-      border-radius: 6px;
-      border-left: 3px solid #3498db;
+      padding: 12px;
+      margin-bottom: 8px;
+      border-radius: 8px;
+      border-left: 3px solid #FFB3D9;
       display: flex;
       align-items: center;
       gap: 10px;
@@ -337,124 +468,108 @@
       opacity: 0.5;
     }
 
-    .subtask-item.completed .subtask-text {
-      text-decoration: line-through;
-    }
-
     .subtask-text {
       flex: 1;
       color: #555;
     }
 
-    .subtask-actions {
-      display: flex;
-      gap: 5px;
-    }
-
-    .btn-small {
-      padding: 3px 8px;
-      font-size: 0.8em;
-      background: #e74c3c;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-
-    .btn-small:hover {
-      background: #c0392b;
-    }
-
-    @media (max-width: 600px) {
-      .container {
-        padding: 20px;
-      }
-
-      .header {
-        flex-direction: column;
-        gap: 15px;
-      }
-
-      h1 {
-        font-size: 1.5em;
-      }
-
-      .input-group {
-        flex-direction: column;
+    @media (max-width: 1024px) {
+      .left-panel {
+        width: 100%;
       }
 
       .stats {
         grid-template-columns: 1fr;
       }
-
-      .task-item {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-
-      .task-actions {
-        width: 100%;
-      }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <h1>📝 ToDoリスト</h1>
-      <button class="logout-btn" onclick="logout()">ログアウト</button>
-    </div>
-
-    <div class="db-status">
-      🗄️ PostgreSQL データベースに接続中...
-    </div>
-
-    <div class="error-message" id="errorMessage"></div>
-
-    <!-- 入力フォーム -->
-    <div class="input-group">
-      <input type="text" id="taskInput" placeholder="新しいタスクを入力...">
-      <input type="date" id="deadlineInput">
-      <input type="number" id="durationInput" placeholder="想定時間(分)" min="0">
-      <select id="priorityInput">
-        <option value="1">🔴 高</option>
-        <option value="2">🟡 中</option>
-        <option value="3" selected>🟢 低</option>
-      </select>
-      <button id="addBtn" onclick="addTask()">追加</button>
-    </div>
-
-    <!-- 統計情報 -->
-    <div class="stats">
-      <div class="stat-box">
-        <h3>📊 合計</h3>
-        <p id="totalCount">0</p>
+  <div class="main-container">
+    <!-- 左側：タスクリスト -->
+    <div class="left-panel">
+      <div class="top-bar">
+        <h1>📝 ToDoリスト</h1>
+        <button class="logout-btn" onclick="logout()">ログアウト</button>
       </div>
-      <div class="stat-box">
-        <h3>✅ 完了</h3>
-        <p id="completedCount">0</p>
-      </div>
-      <div class="stat-box">
-        <h3>⏳ 未完了</h3>
-        <p id="remainingCount">0</p>
-      </div>
-    </div>
 
-    <!-- フィルター -->
-    <div class="filters">
-      <button class="filter-btn active" onclick="setFilter('all')">すべて</button>
-      <button class="filter-btn" onclick="setFilter('active')">未完了</button>
-      <button class="filter-btn" onclick="setFilter('completed')">完了</button>
-      <button class="filter-btn" onclick="setFilter('urgent')">緊急</button>
-    </div>
-
-    <!-- タスクリスト -->
-    <ul class="task-list" id="taskList">
-      <div class="empty-state">
-        <p>📭 タスクはまだありません</p>
-        <p style="font-size: 0.9em; margin-top: 10px;">タスクを追加して始めましょう！</p>
+      <div class="db-status">
+        🗄️ PostgreSQL データベースに接続中
       </div>
-    </ul>
+
+      <div class="error-message" id="errorMessage"></div>
+
+      <!-- 統計情報 -->
+      <div class="stats">
+        <div class="stat-box">
+          <h3>📊 合計</h3>
+          <p id="totalCount">0</p>
+        </div>
+        <div class="stat-box">
+          <h3>✅ 完了</h3>
+          <p id="completedCount">0</p>
+        </div>
+        <div class="stat-box">
+          <h3>⏳ 未完了</h3>
+          <p id="remainingCount">0</p>
+        </div>
+      </div>
+
+      <!-- フィルター -->
+      <div class="filters">
+        <button class="filter-btn active" onclick="setFilter('all')">すべて</button>
+        <button class="filter-btn" onclick="setFilter('active')">未完了</button>
+        <button class="filter-btn" onclick="setFilter('completed')">完了</button>
+        <button class="filter-btn" onclick="setFilter('urgent')">緊急</button>
+        <button class="add-btn" onclick="openAddModal()">➕ 新規追加</button>
+      </div>
+
+      <!-- タスクリスト -->
+      <ul class="task-list" id="taskList">
+        <div class="empty-state">
+          <p>📭 タスクはまだありません</p>
+          <p style="font-size: 0.95em; margin-top: 10px;">「➕ 新規追加」ボタンからタスクを追加してください</p>
+        </div>
+      </ul>
+    </div>
+  </div>
+
+  <!-- モーダル：タスク追加 -->
+  <div id="addModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">✨ 新しいタスクを追加</div>
+
+      <form onsubmit="handleAddTask(event)">
+        <div class="form-group">
+          <label for="taskInput">タスク名 *</label>
+          <input type="text" id="taskInput" placeholder="例：レポートを完成させる" required>
+        </div>
+
+        <div class="form-group">
+          <label for="deadlineInput">期限</label>
+          <input type="date" id="deadlineInput">
+        </div>
+
+        <div class="form-group">
+          <label for="durationInput">想定時間（分）</label>
+          <input type="number" id="durationInput" placeholder="例：60" min="0">
+        </div>
+
+        <div class="form-group">
+          <label for="priorityInput">優先度</label>
+          <select id="priorityInput">
+            <option value="3">🟢 低</option>
+            <option value="2">🟡 中</option>
+            <option value="1">🔴 高</option>
+          </select>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" onclick="closeAddModal()">キャンセル</button>
+          <button type="submit" class="btn-submit" id="submitBtn">追加する</button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <script>
@@ -476,7 +591,6 @@
       return classes[priority] || '';
     };
 
-    // カウントダウン計算
     const getCountdownInfo = (deadline) => {
       if (!deadline) return { text: '期限なし', class: '', daysLeft: null };
 
@@ -498,14 +612,6 @@
       }
     };
 
-    // 時間による色分け
-    const getDurationClass = (duration) => {
-      if (!duration || duration === 0) return '';
-      if (duration <= 15) return 'safe';
-      if (duration <= 60) return 'warning';
-      return 'urgent';
-    };
-
     const showError = (message) => {
       const errorEl = document.getElementById('errorMessage');
       errorEl.textContent = message;
@@ -519,32 +625,28 @@
       window.location.href = '/login';
     };
 
-    const loadTasks = async () => {
-      try {
-        const response = await fetch(`/api/tasks?userId=${userId}`);
-        if (!response.ok) throw new Error('Failed to load tasks');
-        tasks = await response.json();
-        render();
-        updateStats();
-      } catch (err) {
-        console.error(err);
-        showError('タスクの読み込みに失敗しました');
-      }
+    const openAddModal = () => {
+      document.getElementById('addModal').classList.add('show');
     };
 
-    const addTask = async () => {
+    const closeAddModal = () => {
+      document.getElementById('addModal').classList.remove('show');
+      document.getElementById('taskInput').value = '';
+      document.getElementById('deadlineInput').value = '';
+      document.getElementById('durationInput').value = '';
+      document.getElementById('priorityInput').value = '3';
+    };
+
+    const handleAddTask = async (e) => {
+      e.preventDefault();
+
       const input = document.getElementById('taskInput');
       const deadline = document.getElementById('deadlineInput');
       const duration = document.getElementById('durationInput');
       const priority = document.getElementById('priorityInput');
-      const addBtn = document.getElementById('addBtn');
+      const submitBtn = document.getElementById('submitBtn');
 
-      if (!input.value.trim()) {
-        alert('タスクを入力してください');
-        return;
-      }
-
-      addBtn.disabled = true;
+      submitBtn.disabled = true;
 
       try {
         const response = await fetch('/api/tasks', {
@@ -565,16 +667,25 @@
         tasks.push(newTask);
         render();
         updateStats();
-
-        input.value = '';
-        deadline.value = '';
-        duration.value = '';
-        priority.value = '3';
+        closeAddModal();
       } catch (err) {
         console.error(err);
         showError('タスクの作成に失敗しました');
       } finally {
-        addBtn.disabled = false;
+        submitBtn.disabled = false;
+      }
+    };
+
+    const loadTasks = async () => {
+      try {
+        const response = await fetch(`/api/tasks?userId=${userId}`);
+        if (!response.ok) throw new Error('Failed to load tasks');
+        tasks = await response.json();
+        render();
+        updateStats();
+      } catch (err) {
+        console.error(err);
+        showError('タスクの読み込みに失敗しました');
       }
     };
 
@@ -633,7 +744,7 @@
 
     const getFilteredTasks = () => {
       return tasks.filter(task => {
-        if (task.parent_id) return false; // 親タスクのみ表示
+        if (task.parent_id) return false;
         if (filter === 'active') return !task.is_completed;
         if (filter === 'completed') return task.is_completed;
         if (filter === 'urgent') {
@@ -664,7 +775,7 @@
         taskList.innerHTML = `
           <div class="empty-state">
             <p>📭 タスクはまだありません</p>
-            <p style="font-size: 0.9em; margin-top: 10px;">タスクを追加して始めましょう！</p>
+            <p style="font-size: 0.95em; margin-top: 10px;">「➕ 新規追加」ボタンからタスクを追加してください</p>
           </div>
         `;
         return;
@@ -672,20 +783,17 @@
 
       taskList.innerHTML = filtered.map(task => {
         const countdown = getCountdownInfo(task.deadline);
-        const durationClass = getDurationClass(task.duration_minutes);
-        const urgencyClass = countdown.class || durationClass || '';
+        const urgencyClass = countdown.class || '';
 
         const subtasks = tasks.filter(t => t.parent_id === task.id);
         const subtaskHtml = subtasks.length > 0 ? `
           <ul class="subtask-list">
             ${subtasks.map(subtask => `
               <li class="subtask-item ${subtask.is_completed ? 'completed' : ''}">
-                <input type="checkbox" style="width: 16px; height: 16px;" ${subtask.is_completed ? 'checked' : ''} 
+                <input type="checkbox" style="width: 16px; height: 16px; accent-color: #FF3399;" ${subtask.is_completed ? 'checked' : ''} 
                        onchange="toggleTask(${subtask.id})">
                 <div class="subtask-text">${subtask.title}</div>
-                <div class="subtask-actions">
-                  <button class="btn-small" onclick="deleteTask(${subtask.id})">削除</button>
-                </div>
+                <button class="btn-small btn-delete" onclick="deleteTask(${subtask.id})">削除</button>
               </li>
             `).join('')}
           </ul>
@@ -705,49 +813,23 @@
               ${subtaskHtml}
             </div>
             <div class="task-actions">
-              <button class="btn-subtask" onclick="addSubtask(${task.id})">子タスク</button>
-              <button class="btn-delete" onclick="deleteTask(${task.id})">削除</button>
+              <button class="btn-small" onclick="alert('子タスク機能は準備中です')">子</button>
+              <button class="btn-small btn-delete" onclick="deleteTask(${task.id})">削除</button>
             </div>
           </li>
         `;
       }).join('');
     };
 
-    const addSubtask = async (parentId) => {
-      const title = prompt('子タスクの名前を入力してください:');
-      if (!title) return;
-
-      try {
-        const response = await fetch('/api/tasks', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            title,
-            parent_id: parentId,
-            userId: parseInt(userId),
-            deadline: null,
-            duration_minutes: 0,
-          }),
-        });
-
-        if (!response.ok) throw new Error('Failed to create subtask');
-
-        const newSubtask = await response.json();
-        tasks.push(newSubtask);
-        render();
-      } catch (err) {
-        console.error(err);
-        showError('子タスクの作成に失敗しました');
+    // モーダルの外側をクリックで閉じる
+    document.getElementById('addModal').addEventListener('click', (e) => {
+      if (e.target.id === 'addModal') {
+        closeAddModal();
       }
-    };
+    });
 
     // 初期化
     loadTasks();
-
-    // Enterキーでタスク追加
-    document.getElementById('taskInput').addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') addTask();
-    });
 
     // 1分ごとにカウントダウンを更新
     setInterval(() => {
