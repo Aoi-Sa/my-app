@@ -251,7 +251,7 @@ app.get("/api/routines", async (req: any, res) => {
 // ルーティンを作成
 app.post("/api/routines", async (req: any, res) => {
   try {
-    const { title, userId } = req.body;
+    const { title, userId, frequency, endDate } = req.body;
     if (!title || !userId) {
       res.status(400).json({ error: "Title and userId are required" });
       return;
@@ -260,7 +260,9 @@ app.post("/api/routines", async (req: any, res) => {
     const routine = await prisma.routine.create({
       data: {
         title,
-        interval_days: 1, // 毎日
+        interval_days: 1,
+        frequency: frequency || "daily",
+        endDate: endDate ? new Date(endDate) : null,
         userId: parseInt(userId),
       },
     });
@@ -276,13 +278,49 @@ app.post("/api/routines", async (req: any, res) => {
 app.put("/api/routines/:id/toggle", async (req: any, res) => {
   try {
     const { id } = req.params;
-    const { completed } = req.body; // boolean
+    const { completed, date } = req.body; // completed: boolean, date: "YYYY-MM-DD"
+    const routineId = parseInt(id);
 
-    const routine = await prisma.routine.update({
-      where: { id: parseInt(id) },
-      data: {
-        last_run_at: completed ? new Date() : null,
-      },
+    if (completed) {
+      // completionsをupsert
+      await prisma.routineCompletion.upsert({
+        where: {
+          routineId_date: {
+            routineId,
+            date,
+          },
+        },
+        update: {},
+        create: {
+          routineId,
+          date,
+        },
+      });
+
+      // 互換性のために last_run_at も更新
+      await prisma.routine.update({
+        where: { id: routineId },
+        data: { last_run_at: new Date() },
+      });
+    } else {
+      // completionsを削除
+      try {
+        await prisma.routineCompletion.delete({
+          where: {
+            routineId_date: {
+              routineId,
+              date,
+            },
+          },
+        });
+      } catch (e) {
+        // 存在しなければスルー
+      }
+    }
+
+    // 更新後のルーティンを返す
+    const routine = await prisma.routine.findUnique({
+      where: { id: routineId },
     });
 
     res.json(routine);
@@ -306,8 +344,8 @@ app.delete("/api/routines/:id", async (req: any, res) => {
   }
 });
 
-// ルーティンの日ごとの達成ログ一覧を取得
-app.get("/api/routines/logs", async (req: any, res) => {
+// ユーザーの全ルーティン完了履歴を取得 (カレンダーの達成率計算用)
+app.get("/api/routines/completions", async (req: any, res) => {
   try {
     const userId = parseInt(req.query.userId);
     if (!userId) {
@@ -315,70 +353,22 @@ app.get("/api/routines/logs", async (req: any, res) => {
       return;
     }
 
-    const logs = await prisma.routineLog.findMany({
-      where: { userId },
-    });
-
-    res.json(logs.map(log => log.date));
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Failed to fetch routine logs" });
-  }
-});
-
-// ルーティンの達成ログを作成
-app.post("/api/routines/logs", async (req: any, res) => {
-  try {
-    const { userId, date } = req.body; // date: "YYYY-MM-DD"
-    if (!userId || !date) {
-      res.status(400).json({ error: "UserId and date are required" });
-      return;
-    }
-
-    const log = await prisma.routineLog.upsert({
+    const completions = await prisma.routineCompletion.findMany({
       where: {
-        userId_date: {
-          userId: parseInt(userId),
-          date,
-        },
-      },
-      update: {},
-      create: {
-        userId: parseInt(userId),
-        date,
-      },
-    });
-
-    res.status(201).json(log);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Failed to save routine log" });
-  }
-});
-
-// ルーティンの達成ログを削除
-app.delete("/api/routines/logs", async (req: any, res) => {
-  try {
-    const userId = parseInt(req.query.userId);
-    const date = req.query.date; // "YYYY-MM-DD"
-    if (!userId || !date) {
-      res.status(400).json({ error: "UserId and date are required" });
-      return;
-    }
-
-    await prisma.routineLog.delete({
-      where: {
-        userId_date: {
+        routine: {
           userId,
-          date,
         },
+      },
+      select: {
+        routineId: true,
+        date: true,
       },
     });
 
-    res.json({ message: "Routine log deleted successfully" });
+    res.json(completions);
   } catch (err) {
     console.error(err);
-    res.json({ message: "Routine log already deleted or not found" });
+    res.status(500).json({ error: "Failed to fetch completions" });
   }
 });
 

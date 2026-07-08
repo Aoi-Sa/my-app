@@ -23,7 +23,6 @@ model User {
   tasks       Task[]
   routines    Routine[]
   files       TaskFile[]
-  routineLogs RoutineLog[]
 
   @@map("users")
 }
@@ -60,7 +59,7 @@ model Task {
 model Routine {
   id            Int       @id @default(autoincrement())
   title         String
-  interval_days Int       // 何日ごとに生成するか
+  interval_days Int       @default(1)
   priority      Int       @default(3)
   duration_minutes Int    @default(0)
   last_run_at   DateTime?
@@ -68,9 +67,15 @@ model Routine {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
+  frequency     String    @default("daily") // daily, weekday, weekend, weekly, biweekly, 3months, 6months, yearly
+  endDate       DateTime? // 終了期限
+
   // ユーザーとの関連
   userId        Int
   user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // 完了履歴とのリレーション
+  completions   RoutineCompletion[]
 
   @@index([userId])
   @@map("routines")
@@ -98,14 +103,14 @@ model TaskFile {
   @@map("task_files")
 }
 
-// ルーチンの日ごとの達成ログ（カレンダー用）
-model RoutineLog {
+// ルーティンごとの日別完了ログ
+model RoutineCompletion {
   id        Int      @id @default(autoincrement())
   date      String   // "YYYY-MM-DD" 形式
-  userId    Int
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  routineId Int
+  routine   Routine  @relation(fields: [routineId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, date])
-  @@index([userId])
-  @@map("routine_logs")
+  @@unique([routineId, date])
+  @@index([routineId])
+  @@map("routine_completions")
 }

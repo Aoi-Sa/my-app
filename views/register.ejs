@@ -31,8 +31,48 @@
       justify-content: center;
       align-items: center;
       padding: 20px;
+      transition: background-color 0.3s, color 0.3s;
     }
 
+    /* ダークモード */
+    body.dark-mode {
+      background: #121212;
+      color: #e0e0e0;
+    }
+
+    body.dark-mode .container {
+      background: #1e1e1e;
+      border-top-color: var(--theme-color);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    body.dark-mode h1 {
+      color: #ffffff;
+    }
+
+    body.dark-mode label {
+      color: #aaa;
+    }
+
+    body.dark-mode input[type="email"],
+    body.dark-mode input[type="password"],
+    body.dark-mode input[type="text"] {
+      background: #252525;
+      border-color: #333;
+      color: #ffffff;
+    }
+
+    body.dark-mode input[type="email"]:focus,
+    body.dark-mode input[type="password"]:focus,
+    body.dark-mode input[type="text"]:focus {
+      border-color: var(--theme-color);
+    }
+
+    body.dark-mode .link-group {
+      color: #aaa;
+    }
+
+    /* 共通コンテナ */
     .container {
       background: white;
       border-radius: 16px;
@@ -203,6 +243,11 @@
       document.documentElement.style.setProperty('--theme-color-hover', hover);
       document.documentElement.style.setProperty('--theme-color-shadow', shadow);
       document.documentElement.style.setProperty('--theme-color-light', light);
+
+      // ダークモードの同期
+      if (localStorage.getItem('dark-mode') === 'true') {
+        document.body.classList.add('dark-mode');
+      }
     };
     loadSavedTheme();
 
