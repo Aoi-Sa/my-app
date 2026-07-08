@@ -4,6 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>登録 - ToDoリスト</title>
+  <!-- 可読性の高い Google Fonts Noto Sans JP & Inter の読み込み -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+
   <style>
     :root {
       --theme-color: #FF3399;
@@ -19,7 +24,7 @@
     }
 
     body {
-      font-family: '游ゴシック体', 'YuGothic', '游ゴシック', sans-serif;
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
       background: #f5f5f5;
       min-height: 100vh;
       display: flex;
@@ -68,7 +73,7 @@
       border-radius: 8px;
       font-size: 1em;
       transition: all 0.3s;
-      font-family: '游ゴシック体', 'YuGothic', sans-serif;
+      font-family: inherit;
     }
 
     input[type="email"]:focus,
@@ -90,7 +95,7 @@
       cursor: pointer;
       transition: all 0.3s;
       font-weight: 600;
-      font-family: '游ゴシック体', 'YuGothic', sans-serif;
+      font-family: inherit;
     }
 
     button:hover {
@@ -151,7 +156,7 @@
 </head>
 <body>
   <div class="container">
-    <h1>📝 アカウント作成</h1>
+    <h1>アカウント作成</h1>
 
     <div class="error-message" id="errorMessage"></div>
     <div class="success-message" id="successMessage"></div>

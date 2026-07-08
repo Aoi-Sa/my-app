@@ -4,6 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ToDoリスト</title>
+  <!-- 可読性の高い Google Fonts Noto Sans JP & Inter の読み込み -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  
   <style>
     :root {
       --theme-color: #FF3399;
@@ -20,7 +25,7 @@
     }
 
     body {
-      font-family: '游ゴシック体', 'YuGothic', '游ゴシック', sans-serif;
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
       background: #ffffff;
       min-height: 100vh;
       display: flex;
@@ -33,9 +38,21 @@
       height: 100vh;
     }
 
-    /* 左側：タスクリスト */
+    /* 左側：ルーティン＆カレンダーパネル */
+    .routine-panel {
+      width: 420px;
+      background: #fafafa;
+      border-right: 1px solid #eee;
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+      overflow-y: auto;
+    }
+
+    /* 右側：タスクリスト */
     .left-panel {
-      width: 100%;
+      flex: 1;
       padding: 40px;
       overflow-y: auto;
       background: #ffffff;
@@ -52,8 +69,15 @@
     }
 
     h1 {
-      font-size: 2.5em;
-      font-weight: 600;
+      font-size: 2.2em;
+      font-weight: 700;
+      color: #000;
+      letter-spacing: -0.5px;
+    }
+
+    h2 {
+      font-size: 1.5em;
+      font-weight: 700;
       color: #000;
     }
 
@@ -67,7 +91,7 @@
     }
 
     .theme-selector span {
-      font-size: 0.9em;
+      font-size: 0.85em;
       color: #666;
       font-weight: 600;
     }
@@ -96,8 +120,8 @@
       padding: 10px 20px;
       border-radius: 8px;
       cursor: pointer;
-      font-size: 0.95em;
-      font-family: '游ゴシック体', 'YuGothic', sans-serif;
+      font-size: 0.9em;
+      font-family: inherit;
       font-weight: 500;
       transition: all 0.3s;
     }
@@ -108,36 +132,171 @@
       box-shadow: 0 4px 12px var(--theme-color-shadow);
     }
 
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 15px;
-      margin-bottom: 30px;
-    }
-
-    .stat-box {
-      background: #f5f5f5;
-      padding: 20px;
+    /* ルーティンセクション */
+    .congrats-message {
+      background: #eafaf1;
+      color: #27ae60;
+      padding: 15px;
       border-radius: 12px;
-      text-align: center;
-      border-bottom: 3px solid var(--theme-color);
-      transition: border-bottom-color 0.3s;
-    }
-
-    .stat-box h3 {
-      color: #666;
-      font-size: 0.9em;
-      margin-bottom: 8px;
-      font-weight: 500;
-    }
-
-    .stat-box p {
-      color: var(--theme-color);
-      font-size: 2em;
       font-weight: 700;
-      transition: color 0.3s;
+      font-size: 0.95em;
+      text-align: center;
+      display: none;
+      animation: fadeIn 0.3s;
+      border: 1px solid #d4efdf;
     }
 
+    .congrats-message.show {
+      display: block;
+    }
+
+    .routine-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .routine-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .routine-item {
+      background: #ffffff;
+      padding: 14px 20px;
+      border-radius: 10px;
+      border: 1px solid #eee;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.2s;
+    }
+
+    .routine-item.completed {
+      background: #f5f5f5;
+      opacity: 0.6;
+    }
+
+    .routine-item.completed .routine-text {
+      text-decoration: line-through;
+      color: #888;
+    }
+
+    .routine-checkbox {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+      accent-color: var(--theme-color);
+    }
+
+    .routine-text {
+      flex: 1;
+      font-size: 0.95em;
+      font-weight: 500;
+      color: #333;
+    }
+
+    .btn-delete-routine {
+      border: none;
+      background: none;
+      color: #999;
+      font-size: 0.85em;
+      cursor: pointer;
+      font-weight: 500;
+      font-family: inherit;
+    }
+
+    .btn-delete-routine:hover {
+      color: #c0392b;
+    }
+
+    /* カレンダー */
+    .calendar-container {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+      border: 1px solid #eee;
+      margin-top: 10px;
+    }
+
+    .calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      font-weight: 600;
+      font-size: 0.95em;
+    }
+
+    .calendar-header button {
+      border: none;
+      background: none;
+      font-size: 1.1em;
+      cursor: pointer;
+      padding: 0 10px;
+      color: #666;
+    }
+
+    .calendar-grid-header {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      text-align: center;
+      font-size: 0.8em;
+      font-weight: 600;
+      color: #999;
+      margin-bottom: 10px;
+    }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+    }
+
+    .calendar-day {
+      aspect-ratio: 1;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px;
+      font-size: 0.8em;
+      background: #fdfdfd;
+      border: 1px solid #f0f0f0;
+      position: relative;
+    }
+
+    .calendar-day.today {
+      border-color: var(--theme-color);
+      background: var(--theme-color-light);
+      font-weight: 700;
+    }
+
+    .calendar-day.empty {
+      background: transparent;
+      border: none;
+    }
+
+    .calendar-day .day-number {
+      color: #333;
+    }
+
+    .calendar-day .stamp {
+      font-size: 1.2em;
+      line-height: 1;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -40%);
+      pointer-events: none;
+    }
+
+    /* タスクリストスタイル */
     .filters {
       display: flex;
       gap: 10px;
@@ -153,9 +312,10 @@
       border: 2px solid transparent;
       border-radius: 20px;
       cursor: pointer;
-      font-family: '游ゴシック体', 'YuGothic', sans-serif;
+      font-family: inherit;
       font-weight: 500;
       transition: all 0.3s;
+      font-size: 0.9em;
     }
 
     .filter-btn.active {
@@ -180,7 +340,7 @@
     }
 
     .sort-container label {
-      font-size: 0.9em;
+      font-size: 0.85em;
       font-weight: 600;
       color: #666;
     }
@@ -193,7 +353,8 @@
       cursor: pointer;
       outline: none;
       padding: 0;
-      font-size: 0.9em;
+      font-size: 0.85em;
+      font-family: inherit;
     }
 
     .add-btn {
@@ -204,9 +365,9 @@
       border: none;
       border-radius: 20px;
       cursor: pointer;
-      font-family: '游ゴシック体', 'YuGothic', sans-serif;
+      font-family: inherit;
       font-weight: 600;
-      font-size: 1em;
+      font-size: 0.95em;
       transition: all 0.3s;
     }
 
@@ -221,7 +382,7 @@
     }
 
     .task-item {
-      background: #f0f0f0;
+      background: #f5f5f5;
       padding: 20px;
       margin-bottom: 15px;
       border-radius: 12px;
@@ -230,12 +391,15 @@
       align-items: flex-start;
       gap: 15px;
       transition: all 0.3s;
+      border-top: 1px solid #eee;
+      border-right: 1px solid #eee;
+      border-bottom: 1px solid #eee;
     }
 
     .task-item:hover {
       background: #e8e8e8;
       transform: translateX(5px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
     }
 
     .task-item.completed {
@@ -245,27 +409,27 @@
 
     .task-item.completed .task-text {
       text-decoration: line-through;
-      color: #999;
+      color: #888;
     }
 
     .task-item.urgent {
       border-left-color: #e74c3c;
-      background: #f5e8e8;
+      background: #fdf6f6;
     }
 
     .task-item.warning {
       border-left-color: #f39c12;
-      background: #f5ebe8;
+      background: #fdfaf6;
     }
 
     .task-item.safe {
       border-left-color: #27ae60;
-      background: #e8f0e8;
+      background: #f6fdf8;
     }
 
     .task-item.critical {
       border-left-color: #c0392b;
-      background: #f0e8e8;
+      background: #fdf5f5;
     }
 
     .task-checkbox {
@@ -288,7 +452,7 @@
     }
 
     .task-meta {
-      font-size: 0.9em;
+      font-size: 0.85em;
       color: #666;
       display: flex;
       gap: 15px;
@@ -335,13 +499,13 @@
 
     .btn-small {
       padding: 6px 12px;
-      font-size: 0.85em;
+      font-size: 0.8em;
       background: var(--theme-color);
       color: white;
       border: none;
       border-radius: 6px;
       cursor: pointer;
-      font-family: '游ゴシック体', 'YuGothic', sans-serif;
+      font-family: inherit;
       font-weight: 500;
       transition: all 0.3s;
     }
@@ -366,7 +530,7 @@
     }
 
     .empty-state p {
-      font-size: 1.1em;
+      font-size: 1.05em;
       margin-bottom: 10px;
     }
 
@@ -398,7 +562,7 @@
       background: white;
       padding: 40px;
       border-radius: 16px;
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
       width: 90%;
       max-width: 500px;
       animation: slideUp 0.3s;
@@ -416,7 +580,7 @@
     }
 
     .modal-header {
-      font-size: 1.8em;
+      font-size: 1.5em;
       font-weight: 700;
       margin-bottom: 30px;
       color: #000;
@@ -431,10 +595,11 @@
       margin-bottom: 8px;
       font-weight: 600;
       color: #000;
-      font-size: 0.95em;
+      font-size: 0.9em;
     }
 
     input[type="text"],
+    input[type="date"],
     input[type="datetime-local"],
     input[type="number"],
     select {
@@ -442,13 +607,14 @@
       padding: 12px;
       border: 2px solid #f0f0f0;
       border-radius: 8px;
-      font-size: 1em;
-      font-family: '游ゴシック体', 'YuGothic', sans-serif;
+      font-size: 0.95em;
+      font-family: inherit;
       color: #000;
       transition: all 0.3s;
     }
 
     input[type="text"]:focus,
+    input[type="date"]:focus,
     input[type="datetime-local"]:focus,
     input[type="number"]:focus,
     select:focus {
@@ -470,8 +636,8 @@
       color: white;
       border: none;
       border-radius: 8px;
-      font-size: 1em;
-      font-family: '游ゴシック体', 'YuGothic', sans-serif;
+      font-size: 0.95em;
+      font-family: inherit;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.3s;
@@ -496,8 +662,8 @@
       color: #000;
       border: 2px solid #f0f0f0;
       border-radius: 8px;
-      font-size: 1em;
-      font-family: '游ゴシック体', 'YuGothic', sans-serif;
+      font-size: 0.95em;
+      font-family: inherit;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.3s;
@@ -511,10 +677,11 @@
       text-align: center;
       padding: 12px;
       margin-bottom: 20px;
-      background: #f0f0f0;
+      background: #f5f5f5;
       border-radius: 8px;
       color: #666;
-      font-size: 0.9em;
+      font-size: 0.85em;
+      font-weight: 500;
     }
 
     .error-message {
@@ -525,6 +692,7 @@
       margin-bottom: 20px;
       display: none;
       font-weight: 500;
+      font-size: 0.9em;
     }
 
     .subtask-list {
@@ -542,7 +710,7 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      font-size: 0.95em;
+      font-size: 0.9em;
     }
 
     .subtask-item.completed {
@@ -556,22 +724,65 @@
     }
 
     @media (max-width: 1024px) {
-      .left-panel {
-        width: 100%;
+      .main-container {
+        flex-direction: column;
+        height: auto;
       }
 
-      .stats {
-        grid-template-columns: 1fr;
+      .routine-panel {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #eee;
+        height: auto;
+        padding: 30px;
+      }
+
+      .left-panel {
+        height: auto;
+        padding: 30px;
       }
     }
   </style>
 </head>
 <body>
   <div class="main-container">
-    <!-- 左側：タスクリスト -->
+    <!-- 左側：ルーティン＆カレンダーパネル -->
+    <div class="routine-panel">
+      <!-- 達成した時の褒め言葉メッセージ -->
+      <div id="congratsMessage" class="congrats-message">
+        すべてのルーティンを達成しました！素晴らしい一日です！
+      </div>
+
+      <div>
+        <div class="routine-header">
+          <h2>ルーティン</h2>
+          <button class="btn-small" onclick="openRoutineModal()">新規作成</button>
+        </div>
+        <ul class="routine-list" id="routineList">
+          <!-- ルーティン一覧がここに挿入されます -->
+        </ul>
+      </div>
+
+      <!-- 達成日カレンダー -->
+      <div class="calendar-container">
+        <div class="calendar-header">
+          <button onclick="prevMonth()">&lt;</button>
+          <span id="calendarTitle">2026年7月</span>
+          <button onclick="nextMonth()">&gt;</button>
+        </div>
+        <div class="calendar-grid-header">
+          <div>日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div>土</div>
+        </div>
+        <div class="calendar-grid" id="calendarGrid">
+          <!-- カレンダーセルがここに挿入されます -->
+        </div>
+      </div>
+    </div>
+
+    <!-- 右側：タスクリスト -->
     <div class="left-panel">
       <div class="top-bar">
-        <h1>📝 ToDoリスト</h1>
+        <h1>ToDoリスト</h1>
         
         <!-- テーマセレクター -->
         <div class="theme-selector">
@@ -587,26 +798,10 @@
       </div>
 
       <div class="db-status">
-        🗄️ PostgreSQL データベースに接続中
+        PostgreSQL データベースに接続中
       </div>
 
       <div class="error-message" id="errorMessage"></div>
-
-      <!-- 統計情報 -->
-      <div class="stats">
-        <div class="stat-box">
-          <h3>📊 合計</h3>
-          <p id="totalCount">0</p>
-        </div>
-        <div class="stat-box">
-          <h3>✅ 完了</h3>
-          <p id="completedCount">0</p>
-        </div>
-        <div class="stat-box">
-          <h3>⏳ 未完了</h3>
-          <p id="remainingCount">0</p>
-        </div>
-      </div>
 
       <!-- フィルター＆ソート -->
       <div class="filters">
@@ -625,14 +820,14 @@
           </select>
         </div>
 
-        <button class="add-btn" onclick="openAddModal()">➕ 新規追加</button>
+        <button class="add-btn" onclick="openAddModal()">新規追加</button>
       </div>
 
       <!-- タスクリスト -->
       <ul class="task-list" id="taskList">
         <div class="empty-state">
-          <p>📭 タスクはまだありません</p>
-          <p style="font-size: 0.95em; margin-top: 10px;">「➕ 新規追加」ボタンからタスクを追加してください</p>
+          <p>タスクはまだありません</p>
+          <p style="font-size: 0.9em; margin-top: 10px;">「新規追加」ボタンからタスクを追加してください</p>
         </div>
       </ul>
     </div>
@@ -641,12 +836,18 @@
   <!-- モーダル：タスク追加 -->
   <div id="addModal" class="modal">
     <div class="modal-content">
-      <div class="modal-header">✨ 新しいタスクを追加</div>
+      <div class="modal-header">新しいタスクを追加</div>
 
       <form onsubmit="handleAddTask(event)">
         <div class="form-group">
           <label for="taskInput">タスク名 *</label>
           <input type="text" id="taskInput" placeholder="例：レポートを完成させる" required>
+        </div>
+
+        <!-- 終日トグル -->
+        <div class="form-group" style="display: flex; align-items: center; gap: 8px; margin-bottom: 15px;">
+          <input type="checkbox" id="allDayCheckbox" onchange="toggleAllDay(this.checked)" style="width: auto; cursor: pointer;">
+          <label for="allDayCheckbox" style="margin-bottom: 0; font-weight: 500; cursor: pointer;">終日タスクにする</label>
         </div>
 
         <div class="form-group">
@@ -662,10 +863,10 @@
         <div class="form-group">
           <label for="priorityInput">優先度</label>
           <select id="priorityInput">
-            <option value="4">🟢 低</option>
-            <option value="3">🟡 中</option>
-            <option value="2">🔴 高</option>
-            <option value="1">💣️ 💥 超緊急</option>
+            <option value="4">低</option>
+            <option value="3">中</option>
+            <option value="2">高</option>
+            <option value="1">超緊急</option>
           </select>
         </div>
 
@@ -680,12 +881,18 @@
   <!-- モーダル：タスク編集 -->
   <div id="editModal" class="modal">
     <div class="modal-content">
-      <div class="modal-header">📝 タスクを編集</div>
+      <div class="modal-header">タスクを編集</div>
 
       <form onsubmit="handleEditTask(event)">
         <div class="form-group">
           <label for="editTaskInput">タスク名 *</label>
           <input type="text" id="editTaskInput" required>
+        </div>
+
+        <!-- 終日トグル -->
+        <div class="form-group" style="display: flex; align-items: center; gap: 8px; margin-bottom: 15px;">
+          <input type="checkbox" id="editAllDayCheckbox" onchange="toggleAllDay(this.checked, true)" style="width: auto; cursor: pointer;">
+          <label for="editAllDayCheckbox" style="margin-bottom: 0; font-weight: 500; cursor: pointer;">終日タスクにする</label>
         </div>
 
         <div class="form-group">
@@ -695,16 +902,16 @@
 
         <div class="form-group">
           <label for="editDurationInput">想定時間（分）</label>
-          <input type="number" id="editDurationInput" placeholder="例：60" min="0">
+          <input type="number" id="editDurationInput" min="0">
         </div>
 
         <div class="form-group">
           <label for="editPriorityInput">優先度</label>
           <select id="editPriorityInput">
-            <option value="4">🟢 低</option>
-            <option value="3">🟡 中</option>
-            <option value="2">🔴 高</option>
-            <option value="1">💣️ 💥 超緊急</option>
+            <option value="4">低</option>
+            <option value="3">中</option>
+            <option value="2">高</option>
+            <option value="1">超緊急</option>
           </select>
         </div>
 
@@ -719,7 +926,7 @@
   <!-- モーダル：子タスク追加 -->
   <div id="subtaskModal" class="modal">
     <div class="modal-content">
-      <div class="modal-header">📌 子タスクを追加</div>
+      <div class="modal-header">子タスクを追加</div>
 
       <form onsubmit="handleAddSubtask(event)">
         <div class="form-group">
@@ -730,6 +937,25 @@
         <div class="modal-footer">
           <button type="button" class="btn-cancel" onclick="closeSubtaskModal()">キャンセル</button>
           <button type="submit" class="btn-submit">追加する</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- モーダル：ルーティン追加 -->
+  <div id="routineModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">新しいルーティンを追加</div>
+
+      <form onsubmit="handleAddRoutine(event)">
+        <div class="form-group">
+          <label for="routineInput">ルーティン名 *</label>
+          <input type="text" id="routineInput" placeholder="例：朝コップ1杯の水を飲む" required>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" onclick="closeRoutineModal()">キャンセル</button>
+          <button type="submit" class="btn-submit" id="routineSubmitBtn">追加する</button>
         </div>
       </form>
     </div>
@@ -782,14 +1008,20 @@
       }, 100);
     };
 
-    // スクリプト読み込み時にテーマを適用
+    // テーマ読み込み
     loadSavedTheme();
 
     let tasks = [];
+    let routines = [];
+    let routineLogs = [];
     let filter = 'all';
     let sortBy = 'created';
     let currentParentId = null;
     let editingTaskId = null;
+
+    // カレンダーの現在の年月
+    let currentYear = new Date().getFullYear();
+    let currentMonth = new Date().getMonth();
 
     const userId = new URLSearchParams(window.location.search).get('userId');
 
@@ -797,8 +1029,18 @@
       window.location.href = '/login';
     }
 
+    // 終日入力の切り替え
+    const toggleAllDay = (checked, isEdit = false) => {
+      const input = document.getElementById(isEdit ? 'editDeadlineInput' : 'deadlineInput');
+      if (checked) {
+        input.type = 'date';
+      } else {
+        input.type = 'datetime-local';
+      }
+    };
+
     const getPriorityLabel = (priority) => {
-      const labels = { 1: '💣️ 💥 超緊急', 2: '🔴 高', 3: '🟡 中', 4: '🟢 低' };
+      const labels = { 1: '超緊急', 2: '高', 3: '中', 4: '低' };
       return labels[priority] || '不明';
     };
 
@@ -814,35 +1056,44 @@
       const deadlineDate = new Date(deadline);
       const diffTime = deadlineDate - now;
 
+      // 日時フォーマットの作成
       const formatDeadline = (d) => {
         const month = d.getMonth() + 1;
         const date = d.getDate();
+        
+        // 終日（時間の秒が23:59:59等）か時間指定があるか判定
+        const isAllDay = d.getHours() === 23 && d.getMinutes() === 59;
+        if (isAllDay) {
+          return `${month}/${date}`;
+        }
+        
         const hours = String(d.getHours()).padStart(2, '0');
         const minutes = String(d.getMinutes()).padStart(2, '0');
         return `${month}/${date} ${hours}:${minutes}`;
       };
 
       if (diffTime < 0) {
-        return { text: `⚠️ 期限切れ (${formatDeadline(deadlineDate)})`, class: 'overdue', daysLeft: -1 };
+        return { text: `期限切れ (${formatDeadline(deadlineDate)})`, class: 'overdue', daysLeft: -1 };
       }
 
       const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
       const diffMinutes = Math.floor((diffTime / (1000 * 60)) % 60);
 
+      // 24時間未満の場合は詳細な時分を表示
       if (diffHours < 24) {
         if (diffHours === 0) {
-          return { text: `⏰ あと${diffMinutes}分 (${formatDeadline(deadlineDate)})`, class: 'urgent', daysLeft: 0 };
+          return { text: `あと${diffMinutes}分 (${formatDeadline(deadlineDate)})`, class: 'urgent', daysLeft: 0 };
         }
-        return { text: `⏰ あと${diffHours}時間${diffMinutes}分 (${formatDeadline(deadlineDate)})`, class: 'urgent', daysLeft: 0 };
+        return { text: `あと${diffHours}時間${diffMinutes}分 (${formatDeadline(deadlineDate)})`, class: 'urgent', daysLeft: 0 };
       }
 
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
       if (diffDays <= 3) {
-        return { text: `🔥 あと${diffDays}日 (${formatDeadline(deadlineDate)})`, class: 'urgent', daysLeft: diffDays };
+        return { text: `あと${diffDays}日 (${formatDeadline(deadlineDate)})`, class: 'urgent', daysLeft: diffDays };
       } else if (diffDays <= 7) {
-        return { text: `⚡ あと${diffDays}日 (${formatDeadline(deadlineDate)})`, class: 'warning', daysLeft: diffDays };
+        return { text: `あと${diffDays}日 (${formatDeadline(deadlineDate)})`, class: 'warning', daysLeft: diffDays };
       } else {
-        return { text: `📅 あと${diffDays}日 (${formatDeadline(deadlineDate)})`, class: 'safe', daysLeft: diffDays };
+        return { text: `あと${diffDays}日 (${formatDeadline(deadlineDate)})`, class: 'safe', daysLeft: diffDays };
       }
     };
 
@@ -867,6 +1118,8 @@
       document.getElementById('addModal').classList.remove('show');
       document.getElementById('taskInput').value = '';
       document.getElementById('deadlineInput').value = '';
+      document.getElementById('deadlineInput').type = 'datetime-local';
+      document.getElementById('allDayCheckbox').checked = false;
       document.getElementById('durationInput').value = '';
       document.getElementById('priorityInput').value = '4';
     };
@@ -883,11 +1136,24 @@
         const year = d.getFullYear();
         const month = String(d.getMonth() + 1).padStart(2, '0');
         const date = String(d.getDate()).padStart(2, '0');
-        const hours = String(d.getHours()).padStart(2, '0');
-        const minutes = String(d.getMinutes()).padStart(2, '0');
-        document.getElementById('editDeadlineInput').value = `${year}-${month}-${date}T${hours}:${minutes}`;
+        
+        // 終日タスク（時間が23:59:59）判定
+        const isAllDay = d.getHours() === 23 && d.getMinutes() === 59;
+        document.getElementById('editAllDayCheckbox').checked = isAllDay;
+        
+        if (isAllDay) {
+          document.getElementById('editDeadlineInput').type = 'date';
+          document.getElementById('editDeadlineInput').value = `${year}-${month}-${date}`;
+        } else {
+          document.getElementById('editDeadlineInput').type = 'datetime-local';
+          const hours = String(d.getHours()).padStart(2, '0');
+          const minutes = String(d.getMinutes()).padStart(2, '0');
+          document.getElementById('editDeadlineInput').value = `${year}-${month}-${date}T${hours}:${minutes}`;
+        }
       } else {
         document.getElementById('editDeadlineInput').value = '';
+        document.getElementById('editDeadlineInput').type = 'datetime-local';
+        document.getElementById('editAllDayCheckbox').checked = false;
       }
 
       document.getElementById('editDurationInput').value = task.duration_minutes || '';
@@ -912,6 +1178,17 @@
       currentParentId = null;
     };
 
+    const openRoutineModal = () => {
+      document.getElementById('routineModal').classList.add('show');
+    };
+
+    const closeRoutineModal = () => {
+      document.getElementById('routineModal').classList.remove('show');
+      document.getElementById('routineInput').value = '';
+    };
+
+    // ========== API連携 ==========
+
     const handleAddTask = async (e) => {
       e.preventDefault();
 
@@ -919,9 +1196,16 @@
       const deadline = document.getElementById('deadlineInput');
       const duration = document.getElementById('durationInput');
       const priority = document.getElementById('priorityInput');
+      const allDay = document.getElementById('allDayCheckbox').checked;
       const submitBtn = document.getElementById('submitBtn');
 
       submitBtn.disabled = true;
+
+      let deadlineValue = deadline.value || null;
+      // 終日の場合、時間の末尾を 23:59:59 に設定
+      if (allDay && deadlineValue) {
+        deadlineValue = `${deadlineValue}T23:59:59`;
+      }
 
       try {
         const response = await fetch('/api/tasks', {
@@ -929,7 +1213,7 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             title: input.value.trim(),
-            deadline: deadline.value || null,
+            deadline: deadlineValue,
             priority: parseInt(priority.value),
             duration_minutes: parseInt(duration.value) || 0,
             userId: parseInt(userId),
@@ -941,7 +1225,6 @@
         const newTask = await response.json();
         tasks.push(newTask);
         render();
-        updateStats();
         closeAddModal();
       } catch (err) {
         console.error(err);
@@ -959,9 +1242,15 @@
       const deadline = document.getElementById('editDeadlineInput').value || null;
       const duration = document.getElementById('editDurationInput').value;
       const priority = document.getElementById('editPriorityInput').value;
+      const allDay = document.getElementById('editAllDayCheckbox').checked;
       const submitBtn = document.getElementById('editSubmitBtn');
 
       submitBtn.disabled = true;
+
+      let deadlineValue = deadline;
+      if (allDay && deadlineValue) {
+        deadlineValue = `${deadlineValue}T23:59:59`;
+      }
 
       try {
         const response = await fetch(`/api/tasks/${editingTaskId}`, {
@@ -969,7 +1258,7 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             title,
-            deadline: deadline || null,
+            deadline: deadlineValue,
             priority: parseInt(priority),
             duration_minutes: parseInt(duration) || 0,
           }),
@@ -981,7 +1270,6 @@
         tasks = tasks.map(t => t.id === editingTaskId ? updatedTask : t);
 
         render();
-        updateStats();
         closeEditModal();
       } catch (err) {
         console.error(err);
@@ -1033,7 +1321,6 @@
         if (!response.ok) throw new Error('Failed to load tasks');
         tasks = await response.json();
         render();
-        updateStats();
       } catch (err) {
         console.error(err);
         showError('タスクの読み込みに失敗しました');
@@ -1066,7 +1353,6 @@
         }
 
         render();
-        updateStats();
       } catch (err) {
         console.error(err);
         showError('タスクの更新に失敗しました');
@@ -1086,13 +1372,245 @@
         tasks = tasks.filter(t => t.id !== id);
         if (!silent) {
           render();
-          updateStats();
         }
       } catch (err) {
         console.error(err);
         if (!silent) showError('タスクの削除に失敗しました');
       }
     };
+
+    // ========== ルーティンロジック ==========
+
+    const getTodayStr = () => {
+      const d = new Date();
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const date = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${date}`;
+    };
+
+    const isRoutineCompletedToday = (routine) => {
+      if (!routine.last_run_at) return false;
+      const lastRun = new Date(routine.last_run_at);
+      const today = new Date();
+      return lastRun.getFullYear() === today.getFullYear() &&
+             lastRun.getMonth() === today.getMonth() &&
+             lastRun.getDate() === today.getDate();
+    };
+
+    const handleAddRoutine = async (e) => {
+      e.preventDefault();
+      const input = document.getElementById('routineInput');
+      const submitBtn = document.getElementById('routineSubmitBtn');
+
+      submitBtn.disabled = true;
+
+      try {
+        const response = await fetch('/api/routines', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: input.value.trim(),
+            userId: parseInt(userId),
+          }),
+        });
+
+        if (!response.ok) throw new Error('Failed to create routine');
+
+        const newRoutine = await response.json();
+        routines.push(newRoutine);
+        renderRoutines();
+        closeRoutineModal();
+      } catch (err) {
+        console.error(err);
+        showError('ルーティンの作成に失敗しました');
+      } finally {
+        submitBtn.disabled = false;
+      }
+    };
+
+    const toggleRoutine = async (id, checked) => {
+      try {
+        const response = await fetch(`/api/routines/${id}/toggle`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ completed: checked }),
+        });
+
+        if (!response.ok) throw new Error('Failed to toggle routine');
+
+        const updated = await response.json();
+        routines = routines.map(r => r.id === id ? updated : r);
+
+        renderRoutines();
+        checkRoutineCompletion();
+      } catch (err) {
+        console.error(err);
+        showError('ルーティンの更新に失敗しました');
+      }
+    };
+
+    const deleteRoutine = async (id) => {
+      if (!confirm('このルーティンを削除してもよろしいですか？')) return;
+
+      try {
+        const response = await fetch(`/api/routines/${id}`, {
+          method: 'DELETE',
+        });
+
+        if (!response.ok) throw new Error('Failed to delete routine');
+
+        routines = routines.filter(r => r.id !== id);
+        renderRoutines();
+        checkRoutineCompletion();
+      } catch (err) {
+        console.error(err);
+        showError('ルーティンの削除に失敗しました');
+      }
+    };
+
+    const loadRoutines = async () => {
+      try {
+        const response = await fetch(`/api/routines?userId=${userId}`);
+        routines = await response.json();
+        renderRoutines();
+        checkRoutineCompletion();
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    const loadRoutineLogs = async () => {
+      try {
+        const response = await fetch(`/api/routines/logs?userId=${userId}`);
+        routineLogs = await response.json();
+        renderCalendar();
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    // 全完了しているかをチェックし、💮の追加/削除処理を行う
+    const checkRoutineCompletion = async () => {
+      const todayStr = getTodayStr();
+      const msgEl = document.getElementById('congratsMessage');
+
+      const activeRoutines = routines.filter(r => r.is_active);
+      const isAllDone = activeRoutines.length > 0 && activeRoutines.every(r => isRoutineCompletedToday(r));
+
+      if (isAllDone) {
+        msgEl.classList.add('show');
+        if (!routineLogs.includes(todayStr)) {
+          // 💮ログをサーバーに保存
+          try {
+            await fetch('/api/routines/logs', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ userId: parseInt(userId), date: todayStr }),
+            });
+            routineLogs.push(todayStr);
+            renderCalendar();
+          } catch (err) {
+            console.error(err);
+          }
+        }
+      } else {
+        msgEl.classList.remove('show');
+        if (routineLogs.includes(todayStr)) {
+          // 💮ログをサーバーから削除
+          try {
+            await fetch(`/api/routines/logs?userId=${userId}&date=${todayStr}`, {
+              method: 'DELETE',
+            });
+            routineLogs = routineLogs.filter(d => d !== todayStr);
+            renderCalendar();
+          } catch (err) {
+            console.error(err);
+          }
+        }
+      }
+    };
+
+    const renderRoutines = () => {
+      const list = document.getElementById('routineList');
+      if (routines.length === 0) {
+        list.innerHTML = `
+          <li style="text-align: center; color: #999; font-size: 0.9em; padding: 20px;">
+            ルーティンは登録されていません
+          </li>
+        `;
+        return;
+      }
+
+      list.innerHTML = routines.map(routine => {
+        const isDone = isRoutineCompletedToday(routine);
+        return `
+          <li class="routine-item ${isDone ? 'completed' : ''}">
+            <input type="checkbox" class="routine-checkbox" ${isDone ? 'checked' : ''} 
+                   onchange="toggleRoutine(${routine.id}, this.checked)">
+            <div class="routine-text">${routine.title}</div>
+            <button class="btn-delete-routine" onclick="deleteRoutine(${routine.id})">削除</button>
+          </li>
+        `;
+      }).join('');
+    };
+
+    // ========== カレンダーロジック ==========
+
+    const prevMonth = () => {
+      currentMonth--;
+      if (currentMonth < 0) {
+        currentMonth = 11;
+        currentYear--;
+      }
+      renderCalendar();
+    };
+
+    const nextMonth = () => {
+      currentMonth++;
+      if (currentMonth > 11) {
+        currentMonth = 0;
+        currentYear++;
+      }
+      renderCalendar();
+    };
+
+    const renderCalendar = () => {
+      const grid = document.getElementById('calendarGrid');
+      const title = document.getElementById('calendarTitle');
+      grid.innerHTML = '';
+
+      title.textContent = `${currentYear}年${currentMonth + 1}月`;
+
+      const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+      const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+      // 先月の空セル
+      for (let i = 0; i < firstDay; i++) {
+        grid.innerHTML += `<div class="calendar-day empty"></div>`;
+      }
+
+      // 日付セル
+      for (let day = 1; day <= daysInMonth; day++) {
+        const monthStr = String(currentMonth + 1).padStart(2, '0');
+        const dayStr = String(day).padStart(2, '0');
+        const dateKey = `${currentYear}-${monthStr}-${dayStr}`;
+        const hasStamp = routineLogs.includes(dateKey);
+
+        const isToday = currentYear === new Date().getFullYear() &&
+                        currentMonth === new Date().getMonth() &&
+                        day === new Date().getDate();
+
+        grid.innerHTML += `
+          <div class="calendar-day ${isToday ? 'today' : ''}">
+            <span class="day-number">${day}</span>
+            ${hasStamp ? '<span class="stamp">💮</span>' : ''}
+          </div>
+        `;
+      }
+    };
+
+    // ========== タスク操作共通 ==========
 
     const setFilter = (newFilter) => {
       filter = newFilter;
@@ -1131,15 +1649,8 @@
           if (!b.deadline) return -1;
           return new Date(a.deadline) - new Date(b.deadline);
         }
-        // デフォルト: 作成順 (降順)
         return new Date(b.createdAt) - new Date(a.createdAt);
       });
-    };
-
-    const updateStats = () => {
-      document.getElementById('totalCount').textContent = tasks.filter(t => !t.parent_id).length;
-      document.getElementById('completedCount').textContent = tasks.filter(t => t.is_completed && !t.parent_id).length;
-      document.getElementById('remainingCount').textContent = tasks.filter(t => !t.is_completed && !t.parent_id).length;
     };
 
     const getUrgencyClass = (task) => {
@@ -1151,13 +1662,13 @@
     const render = () => {
       const taskList = document.getElementById('taskList');
       const filtered = getFilteredTasks();
-      const sorted = getSortedTasks(filtered); // ソートを適用
+      const sorted = getSortedTasks(filtered);
 
       if (sorted.length === 0) {
         taskList.innerHTML = `
           <div class="empty-state">
-            <p>📭 タスクはまだありません</p>
-            <p style="font-size: 0.95em; margin-top: 10px;">「➕ 新規追加」ボタンからタスクを追加してください</p>
+            <p>タスクはまだありません</p>
+            <p style="font-size: 0.9em; margin-top: 10px;">「新規追加」ボタンからタスクを追加してください</p>
           </div>
         `;
         return;
@@ -1190,13 +1701,13 @@
               <div class="task-meta">
                 <span class="${getPriorityClass(task.priority)}">${getPriorityLabel(task.priority)}</span>
                 ${task.deadline ? `<span class="countdown ${countdown.class}">${countdown.text}</span>` : ''}
-                ${task.duration_minutes > 0 ? `<span>⏱️ ${task.duration_minutes}分</span>` : ''}
+                ${task.duration_minutes > 0 ? `<span>${task.duration_minutes}分</span>` : ''}
               </div>
               ${subtaskHtml}
             </div>
             <div class="task-actions">
-              <button class="btn-small" onclick="openSubtaskModal(${task.id})">➕ タスクを細分化</button>
-              <button class="btn-small" onclick="openEditModal(${task.id})" style="background: #2980b9;">📝 編集</button>
+              <button class="btn-small" onclick="openSubtaskModal(${task.id})">タスクを細分化</button>
+              <button class="btn-small" onclick="openEditModal(${task.id})" style="background: #2980b9;">編集</button>
               <button class="btn-small btn-delete" onclick="deleteTask(${task.id})">削除</button>
             </div>
           </li>
@@ -1223,8 +1734,16 @@
       }
     });
 
-    // 初期化
+    document.getElementById('routineModal').addEventListener('click', (e) => {
+      if (e.target.id === 'routineModal') {
+        closeRoutineModal();
+      }
+    });
+
+    // 初期化ロード
     loadTasks();
+    loadRoutines();
+    loadRoutineLogs();
 
     // 1分ごとにカウントダウンを更新
     setInterval(() => {

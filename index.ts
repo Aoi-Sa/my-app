@@ -225,6 +225,163 @@ app.delete("/api/tasks/:id", async (req, res) => {
   }
 });
 
+// ========== ルーティンAPI ==========
+
+// ルーティン一覧を取得
+app.get("/api/routines", async (req: any, res) => {
+  try {
+    const userId = parseInt(req.query.userId);
+    if (!userId) {
+      res.status(401).json({ error: "User ID is required" });
+      return;
+    }
+
+    const routines = await prisma.routine.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+    });
+
+    res.json(routines);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch routines" });
+  }
+});
+
+// ルーティンを作成
+app.post("/api/routines", async (req: any, res) => {
+  try {
+    const { title, userId } = req.body;
+    if (!title || !userId) {
+      res.status(400).json({ error: "Title and userId are required" });
+      return;
+    }
+
+    const routine = await prisma.routine.create({
+      data: {
+        title,
+        interval_days: 1, // 毎日
+        userId: parseInt(userId),
+      },
+    });
+
+    res.status(201).json(routine);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to create routine" });
+  }
+});
+
+// ルーティンの完了/未完了の切り替え
+app.put("/api/routines/:id/toggle", async (req: any, res) => {
+  try {
+    const { id } = req.params;
+    const { completed } = req.body; // boolean
+
+    const routine = await prisma.routine.update({
+      where: { id: parseInt(id) },
+      data: {
+        last_run_at: completed ? new Date() : null,
+      },
+    });
+
+    res.json(routine);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to toggle routine" });
+  }
+});
+
+// ルーティンを削除
+app.delete("/api/routines/:id", async (req: any, res) => {
+  try {
+    const { id } = req.params;
+    await prisma.routine.delete({
+      where: { id: parseInt(id) },
+    });
+    res.json({ message: "Routine deleted successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to delete routine" });
+  }
+});
+
+// ルーティンの日ごとの達成ログ一覧を取得
+app.get("/api/routines/logs", async (req: any, res) => {
+  try {
+    const userId = parseInt(req.query.userId);
+    if (!userId) {
+      res.status(401).json({ error: "User ID is required" });
+      return;
+    }
+
+    const logs = await prisma.routineLog.findMany({
+      where: { userId },
+    });
+
+    res.json(logs.map(log => log.date));
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch routine logs" });
+  }
+});
+
+// ルーティンの達成ログを作成
+app.post("/api/routines/logs", async (req: any, res) => {
+  try {
+    const { userId, date } = req.body; // date: "YYYY-MM-DD"
+    if (!userId || !date) {
+      res.status(400).json({ error: "UserId and date are required" });
+      return;
+    }
+
+    const log = await prisma.routineLog.upsert({
+      where: {
+        userId_date: {
+          userId: parseInt(userId),
+          date,
+        },
+      },
+      update: {},
+      create: {
+        userId: parseInt(userId),
+        date,
+      },
+    });
+
+    res.status(201).json(log);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to save routine log" });
+  }
+});
+
+// ルーティンの達成ログを削除
+app.delete("/api/routines/logs", async (req: any, res) => {
+  try {
+    const userId = parseInt(req.query.userId);
+    const date = req.query.date; // "YYYY-MM-DD"
+    if (!userId || !date) {
+      res.status(400).json({ error: "UserId and date are required" });
+      return;
+    }
+
+    await prisma.routineLog.delete({
+      where: {
+        userId_date: {
+          userId,
+          date,
+        },
+      },
+    });
+
+    res.json({ message: "Routine log deleted successfully" });
+  } catch (err) {
+    console.error(err);
+    res.json({ message: "Routine log already deleted or not found" });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`🚀 Server is running on http://localhost:${PORT}`);
 });

@@ -20,9 +20,10 @@ model User {
   updatedAt DateTime  @updatedAt
 
   // リレーション
-  tasks     Task[]
-  routines  Routine[]
-  files     TaskFile[]
+  tasks       Task[]
+  routines    Routine[]
+  files       TaskFile[]
+  routineLogs RoutineLog[]
 
   @@map("users")
 }
@@ -95,4 +96,16 @@ model TaskFile {
   @@index([taskId])
   @@index([userId])
   @@map("task_files")
+}
+
+// ルーチンの日ごとの達成ログ（カレンダー用）
+model RoutineLog {
+  id        Int      @id @default(autoincrement())
+  date      String   // "YYYY-MM-DD" 形式
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@index([userId])
+  @@map("routine_logs")
 }
