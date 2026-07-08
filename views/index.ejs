@@ -5,6 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ToDoリスト</title>
   <style>
+    :root {
+      --theme-color: #FF3399;
+      --theme-color-hover: #e60080;
+      --theme-color-shadow: rgba(255, 51, 153, 0.3);
+      --theme-color-light: rgba(255, 51, 153, 0.1);
+      --theme-color-border: #FFB3D9;
+    }
+
     * {
       margin: 0;
       padding: 0;
@@ -39,6 +47,8 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 40px;
+      flex-wrap: wrap;
+      gap: 20px;
     }
 
     h1 {
@@ -47,8 +57,40 @@
       color: #000;
     }
 
+    .theme-selector {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #f5f5f5;
+      padding: 8px 16px;
+      border-radius: 20px;
+    }
+
+    .theme-selector span {
+      font-size: 0.9em;
+      color: #666;
+      font-weight: 600;
+    }
+
+    .theme-dot {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .theme-dot:hover {
+      transform: scale(1.15);
+    }
+
+    .theme-dot.active {
+      border-color: #000;
+    }
+
     .logout-btn {
-      background: #FF3399;
+      background: var(--theme-color);
       color: white;
       border: none;
       padding: 10px 20px;
@@ -61,9 +103,9 @@
     }
 
     .logout-btn:hover {
-      background: #e60080;
+      background: var(--theme-color-hover);
       transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(255, 51, 153, 0.3);
+      box-shadow: 0 4px 12px var(--theme-color-shadow);
     }
 
     .stats {
@@ -78,7 +120,8 @@
       padding: 20px;
       border-radius: 12px;
       text-align: center;
-      border-bottom: 3px solid #FF3399;
+      border-bottom: 3px solid var(--theme-color);
+      transition: border-bottom-color 0.3s;
     }
 
     .stat-box h3 {
@@ -89,9 +132,10 @@
     }
 
     .stat-box p {
-      color: #FF3399;
+      color: var(--theme-color);
       font-size: 2em;
       font-weight: 700;
+      transition: color 0.3s;
     }
 
     .filters {
@@ -99,6 +143,7 @@
       gap: 10px;
       margin-bottom: 30px;
       flex-wrap: wrap;
+      align-items: center;
     }
 
     .filter-btn {
@@ -114,19 +159,46 @@
     }
 
     .filter-btn.active {
-      background: #FF3399;
+      background: var(--theme-color);
       color: white;
-      border-color: #FF3399;
+      border-color: var(--theme-color);
     }
 
     .filter-btn:hover {
-      background: #FFB3D9;
+      background: var(--theme-color-light);
       color: #000;
+    }
+
+    .sort-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: 10px;
+      background: #f5f5f5;
+      padding: 6px 14px;
+      border-radius: 20px;
+    }
+
+    .sort-container label {
+      font-size: 0.9em;
+      font-weight: 600;
+      color: #666;
+    }
+
+    .sort-container select {
+      border: none;
+      background: transparent;
+      font-weight: 600;
+      color: #000;
+      cursor: pointer;
+      outline: none;
+      padding: 0;
+      font-size: 0.9em;
     }
 
     .add-btn {
       margin-left: auto;
-      background: #FF3399;
+      background: var(--theme-color);
       color: white;
       padding: 8px 20px;
       border: none;
@@ -139,9 +211,9 @@
     }
 
     .add-btn:hover {
-      background: #e60080;
+      background: var(--theme-color-hover);
       transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(255, 51, 153, 0.3);
+      box-shadow: 0 4px 12px var(--theme-color-shadow);
     }
 
     .task-list {
@@ -153,7 +225,7 @@
       padding: 20px;
       margin-bottom: 15px;
       border-radius: 12px;
-      border-left: 4px solid #FF3399;
+      border-left: 4px solid var(--theme-color);
       display: flex;
       align-items: flex-start;
       gap: 15px;
@@ -201,7 +273,7 @@
       height: 22px;
       cursor: pointer;
       margin-top: 2px;
-      accent-color: #FF3399;
+      accent-color: var(--theme-color);
     }
 
     .task-content {
@@ -244,11 +316,11 @@
     }
 
     .countdown {
-      background: #FFE6F0;
+      background: var(--theme-color-light);
       padding: 4px 10px;
       border-radius: 6px;
       font-weight: 600;
-      color: #FF3399;
+      color: var(--theme-color);
     }
 
     .countdown.overdue {
@@ -264,7 +336,7 @@
     .btn-small {
       padding: 6px 12px;
       font-size: 0.85em;
-      background: #FF3399;
+      background: var(--theme-color);
       color: white;
       border: none;
       border-radius: 6px;
@@ -275,7 +347,7 @@
     }
 
     .btn-small:hover {
-      background: #e60080;
+      background: var(--theme-color-hover);
       transform: translateY(-2px);
     }
 
@@ -363,7 +435,7 @@
     }
 
     input[type="text"],
-    input[type="date"],
+    input[type="datetime-local"],
     input[type="number"],
     select {
       width: 100%;
@@ -377,12 +449,12 @@
     }
 
     input[type="text"]:focus,
-    input[type="date"]:focus,
+    input[type="datetime-local"]:focus,
     input[type="number"]:focus,
     select:focus {
       outline: none;
-      border-color: #FF3399;
-      box-shadow: 0 0 0 3px rgba(255, 51, 153, 0.1);
+      border-color: var(--theme-color);
+      box-shadow: 0 0 0 3px var(--theme-color-light);
     }
 
     .modal-footer {
@@ -394,7 +466,7 @@
     .btn-submit {
       flex: 1;
       padding: 14px;
-      background: #FF3399;
+      background: var(--theme-color);
       color: white;
       border: none;
       border-radius: 8px;
@@ -406,9 +478,9 @@
     }
 
     .btn-submit:hover {
-      background: #e60080;
+      background: var(--theme-color-hover);
       transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(255, 51, 153, 0.3);
+      box-shadow: 0 4px 12px var(--theme-color-shadow);
     }
 
     .btn-submit:disabled {
@@ -466,7 +538,7 @@
       padding: 12px;
       margin-bottom: 8px;
       border-radius: 8px;
-      border-left: 3px solid #FFB3D9;
+      border-left: 3px solid var(--theme-color-border);
       display: flex;
       align-items: center;
       gap: 10px;
@@ -500,6 +572,17 @@
     <div class="left-panel">
       <div class="top-bar">
         <h1>📝 ToDoリスト</h1>
+        
+        <!-- テーマセレクター -->
+        <div class="theme-selector">
+          <span>テーマカラー：</span>
+          <button class="theme-dot pink" onclick="changeTheme('#FF3399', '#e60080', 'rgba(255, 51, 153, 0.3)', 'rgba(255, 51, 153, 0.1)', '#FFB3D9')" style="background: #FF3399;"></button>
+          <button class="theme-dot blue" onclick="changeTheme('#3399FF', '#0080ff', 'rgba(51, 153, 255, 0.3)', 'rgba(51, 153, 255, 0.1)', '#B3D9FF')" style="background: #3399FF;"></button>
+          <button class="theme-dot green" onclick="changeTheme('#27ae60', '#219653', 'rgba(39, 174, 96, 0.3)', 'rgba(39, 174, 96, 0.1)', '#a3e4d7')" style="background: #27ae60;"></button>
+          <button class="theme-dot orange" onclick="changeTheme('#e67e22', '#d35400', 'rgba(230, 126, 34, 0.3)', 'rgba(230, 126, 34, 0.1)', '#f5cba7')" style="background: #e67e22;"></button>
+          <button class="theme-dot purple" onclick="changeTheme('#9b59b6', '#8e44ad', 'rgba(155, 89, 182, 0.3)', 'rgba(155, 89, 182, 0.1)', '#d7bde2')" style="background: #9b59b6;"></button>
+        </div>
+
         <button class="logout-btn" onclick="logout()">ログアウト</button>
       </div>
 
@@ -525,12 +608,23 @@
         </div>
       </div>
 
-      <!-- フィルター -->
+      <!-- フィルター＆ソート -->
       <div class="filters">
         <button class="filter-btn active" onclick="setFilter('all')">すべて</button>
         <button class="filter-btn" onclick="setFilter('active')">未完了</button>
         <button class="filter-btn" onclick="setFilter('completed')">完了</button>
         <button class="filter-btn" onclick="setFilter('urgent')">緊急</button>
+
+        <!-- ソート機能 -->
+        <div class="sort-container">
+          <label for="sortSelect">並び替え:</label>
+          <select id="sortSelect" onchange="setSort(this.value)">
+            <option value="created">作成日時順</option>
+            <option value="priority">重要度順 (緊急優先)</option>
+            <option value="deadline">期限が早い順</option>
+          </select>
+        </div>
+
         <button class="add-btn" onclick="openAddModal()">➕ 新規追加</button>
       </div>
 
@@ -557,7 +651,7 @@
 
         <div class="form-group">
           <label for="deadlineInput">期限</label>
-          <input type="date" id="deadlineInput">
+          <input type="datetime-local" id="deadlineInput">
         </div>
 
         <div class="form-group">
@@ -583,6 +677,45 @@
     </div>
   </div>
 
+  <!-- モーダル：タスク編集 -->
+  <div id="editModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">📝 タスクを編集</div>
+
+      <form onsubmit="handleEditTask(event)">
+        <div class="form-group">
+          <label for="editTaskInput">タスク名 *</label>
+          <input type="text" id="editTaskInput" required>
+        </div>
+
+        <div class="form-group">
+          <label for="editDeadlineInput">期限</label>
+          <input type="datetime-local" id="editDeadlineInput">
+        </div>
+
+        <div class="form-group">
+          <label for="editDurationInput">想定時間（分）</label>
+          <input type="number" id="editDurationInput" placeholder="例：60" min="0">
+        </div>
+
+        <div class="form-group">
+          <label for="editPriorityInput">優先度</label>
+          <select id="editPriorityInput">
+            <option value="4">🟢 低</option>
+            <option value="3">🟡 中</option>
+            <option value="2">🔴 高</option>
+            <option value="1">💣️ 💥 超緊急</option>
+          </select>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" onclick="closeEditModal()">キャンセル</button>
+          <button type="submit" class="btn-submit" id="editSubmitBtn">保存する</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- モーダル：子タスク追加 -->
   <div id="subtaskModal" class="modal">
     <div class="modal-content">
@@ -603,9 +736,61 @@
   </div>
 
   <script>
+    // テーマカラーの設定
+    const changeTheme = (primary, hover, shadow, light, border) => {
+      document.documentElement.style.setProperty('--theme-color', primary);
+      document.documentElement.style.setProperty('--theme-color-hover', hover);
+      document.documentElement.style.setProperty('--theme-color-shadow', shadow);
+      document.documentElement.style.setProperty('--theme-color-light', light);
+      document.documentElement.style.setProperty('--theme-color-border', border);
+      
+      localStorage.setItem('theme-color', primary);
+      localStorage.setItem('theme-color-hover', hover);
+      localStorage.setItem('theme-color-shadow', shadow);
+      localStorage.setItem('theme-color-light', light);
+      localStorage.setItem('theme-color-border', border);
+
+      // アクティブ表示の切り替え
+      document.querySelectorAll('.theme-dot').forEach(dot => {
+        dot.classList.remove('active');
+        if (dot.style.backgroundColor === primary || dot.getAttribute('onclick').includes(primary)) {
+          dot.classList.add('active');
+        }
+      });
+    };
+
+    const loadSavedTheme = () => {
+      const primary = localStorage.getItem('theme-color') || '#FF3399';
+      const hover = localStorage.getItem('theme-color-hover') || '#e60080';
+      const shadow = localStorage.getItem('theme-color-shadow') || 'rgba(255, 51, 153, 0.3)';
+      const light = localStorage.getItem('theme-color-light') || 'rgba(255, 51, 153, 0.1)';
+      const border = localStorage.getItem('theme-color-border') || '#FFB3D9';
+
+      document.documentElement.style.setProperty('--theme-color', primary);
+      document.documentElement.style.setProperty('--theme-color-hover', hover);
+      document.documentElement.style.setProperty('--theme-color-shadow', shadow);
+      document.documentElement.style.setProperty('--theme-color-light', light);
+      document.documentElement.style.setProperty('--theme-color-border', border);
+
+      // アクティブ表示の適用
+      setTimeout(() => {
+        document.querySelectorAll('.theme-dot').forEach(dot => {
+          if (dot.getAttribute('onclick').includes(primary)) {
+            dot.classList.add('active');
+          }
+        });
+      }, 100);
+    };
+
+    // スクリプト読み込み時にテーマを適用
+    loadSavedTheme();
+
     let tasks = [];
     let filter = 'all';
+    let sortBy = 'created';
     let currentParentId = null;
+    let editingTaskId = null;
+
     const userId = new URLSearchParams(window.location.search).get('userId');
 
     if (!userId) {
@@ -628,18 +813,36 @@
       const now = new Date();
       const deadlineDate = new Date(deadline);
       const diffTime = deadlineDate - now;
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-      if (diffDays < 0) {
-        return { text: `⚠️ 期限切れ ${Math.abs(diffDays)}日前`, class: 'overdue', daysLeft: diffDays };
-      } else if (diffDays === 0) {
-        return { text: '⏰ 本日期限', class: 'urgent', daysLeft: 0 };
-      } else if (diffDays <= 3) {
-        return { text: `🔥 あと${diffDays}日`, class: 'urgent', daysLeft: diffDays };
+      const formatDeadline = (d) => {
+        const month = d.getMonth() + 1;
+        const date = d.getDate();
+        const hours = String(d.getHours()).padStart(2, '0');
+        const minutes = String(d.getMinutes()).padStart(2, '0');
+        return `${month}/${date} ${hours}:${minutes}`;
+      };
+
+      if (diffTime < 0) {
+        return { text: `⚠️ 期限切れ (${formatDeadline(deadlineDate)})`, class: 'overdue', daysLeft: -1 };
+      }
+
+      const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
+      const diffMinutes = Math.floor((diffTime / (1000 * 60)) % 60);
+
+      if (diffHours < 24) {
+        if (diffHours === 0) {
+          return { text: `⏰ あと${diffMinutes}分 (${formatDeadline(deadlineDate)})`, class: 'urgent', daysLeft: 0 };
+        }
+        return { text: `⏰ あと${diffHours}時間${diffMinutes}分 (${formatDeadline(deadlineDate)})`, class: 'urgent', daysLeft: 0 };
+      }
+
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      if (diffDays <= 3) {
+        return { text: `🔥 あと${diffDays}日 (${formatDeadline(deadlineDate)})`, class: 'urgent', daysLeft: diffDays };
       } else if (diffDays <= 7) {
-        return { text: `⚡ あと${diffDays}日`, class: 'warning', daysLeft: diffDays };
+        return { text: `⚡ あと${diffDays}日 (${formatDeadline(deadlineDate)})`, class: 'warning', daysLeft: diffDays };
       } else {
-        return { text: `📅 あと${diffDays}日`, class: 'safe', daysLeft: diffDays };
+        return { text: `📅 あと${diffDays}日 (${formatDeadline(deadlineDate)})`, class: 'safe', daysLeft: diffDays };
       }
     };
 
@@ -666,6 +869,35 @@
       document.getElementById('deadlineInput').value = '';
       document.getElementById('durationInput').value = '';
       document.getElementById('priorityInput').value = '4';
+    };
+
+    const openEditModal = (id) => {
+      const task = tasks.find(t => t.id === id);
+      if (!task) return;
+
+      editingTaskId = id;
+      document.getElementById('editTaskInput').value = task.title;
+
+      if (task.deadline) {
+        const d = new Date(task.deadline);
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const date = String(d.getDate()).padStart(2, '0');
+        const hours = String(d.getHours()).padStart(2, '0');
+        const minutes = String(d.getMinutes()).padStart(2, '0');
+        document.getElementById('editDeadlineInput').value = `${year}-${month}-${date}T${hours}:${minutes}`;
+      } else {
+        document.getElementById('editDeadlineInput').value = '';
+      }
+
+      document.getElementById('editDurationInput').value = task.duration_minutes || '';
+      document.getElementById('editPriorityInput').value = task.priority;
+      document.getElementById('editModal').classList.add('show');
+    };
+
+    const closeEditModal = () => {
+      document.getElementById('editModal').classList.remove('show');
+      editingTaskId = null;
     };
 
     const openSubtaskModal = (parentId) => {
@@ -714,6 +946,46 @@
       } catch (err) {
         console.error(err);
         showError('タスクの作成に失敗しました');
+      } finally {
+        submitBtn.disabled = false;
+      }
+    };
+
+    const handleEditTask = async (e) => {
+      e.preventDefault();
+      if (!editingTaskId) return;
+
+      const title = document.getElementById('editTaskInput').value.trim();
+      const deadline = document.getElementById('editDeadlineInput').value || null;
+      const duration = document.getElementById('editDurationInput').value;
+      const priority = document.getElementById('editPriorityInput').value;
+      const submitBtn = document.getElementById('editSubmitBtn');
+
+      submitBtn.disabled = true;
+
+      try {
+        const response = await fetch(`/api/tasks/${editingTaskId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title,
+            deadline: deadline || null,
+            priority: parseInt(priority),
+            duration_minutes: parseInt(duration) || 0,
+          }),
+        });
+
+        if (!response.ok) throw new Error('Failed to update task');
+
+        const updatedTask = await response.json();
+        tasks = tasks.map(t => t.id === editingTaskId ? updatedTask : t);
+
+        render();
+        updateStats();
+        closeEditModal();
+      } catch (err) {
+        console.error(err);
+        showError('タスクの編集に失敗しました');
       } finally {
         submitBtn.disabled = false;
       }
@@ -786,7 +1058,6 @@
 
         task.is_completed = !task.is_completed;
 
-        // 親タスク完了時、子タスクも削除
         if (task.is_completed && !task.parent_id) {
           const subtasks = tasks.filter(t => t.parent_id === task.id);
           for (const subtask of subtasks) {
@@ -832,6 +1103,11 @@
       render();
     };
 
+    const setSort = (newSort) => {
+      sortBy = newSort;
+      render();
+    };
+
     const getFilteredTasks = () => {
       return tasks.filter(task => {
         if (task.parent_id) return false;
@@ -842,6 +1118,21 @@
           return !task.is_completed && (countdown.class === 'urgent' || countdown.class === 'overdue' || task.priority === 1);
         }
         return true;
+      });
+    };
+
+    const getSortedTasks = (tasksToSort) => {
+      return tasksToSort.sort((a, b) => {
+        if (sortBy === 'priority') {
+          return a.priority - b.priority;
+        }
+        if (sortBy === 'deadline') {
+          if (!a.deadline) return 1;
+          if (!b.deadline) return -1;
+          return new Date(a.deadline) - new Date(b.deadline);
+        }
+        // デフォルト: 作成順 (降順)
+        return new Date(b.createdAt) - new Date(a.createdAt);
       });
     };
 
@@ -860,8 +1151,9 @@
     const render = () => {
       const taskList = document.getElementById('taskList');
       const filtered = getFilteredTasks();
+      const sorted = getSortedTasks(filtered); // ソートを適用
 
-      if (filtered.length === 0) {
+      if (sorted.length === 0) {
         taskList.innerHTML = `
           <div class="empty-state">
             <p>📭 タスクはまだありません</p>
@@ -871,7 +1163,7 @@
         return;
       }
 
-      taskList.innerHTML = filtered.map(task => {
+      taskList.innerHTML = sorted.map(task => {
         const countdown = getCountdownInfo(task.deadline);
         const urgencyClass = getUrgencyClass(task);
 
@@ -880,7 +1172,7 @@
           <ul class="subtask-list">
             ${subtasks.map(subtask => `
               <li class="subtask-item ${subtask.is_completed ? 'completed' : ''}">
-                <input type="checkbox" style="width: 16px; height: 16px; accent-color: #FF3399;" ${subtask.is_completed ? 'checked' : ''} 
+                <input type="checkbox" style="width: 16px; height: 16px; accent-color: var(--theme-color);" ${subtask.is_completed ? 'checked' : ''} 
                        onchange="toggleTask(${subtask.id})">
                 <div class="subtask-text">${subtask.title}</div>
                 <button class="btn-small btn-delete" onclick="deleteTask(${subtask.id})">削除</button>
@@ -904,6 +1196,7 @@
             </div>
             <div class="task-actions">
               <button class="btn-small" onclick="openSubtaskModal(${task.id})">➕ タスクを細分化</button>
+              <button class="btn-small" onclick="openEditModal(${task.id})" style="background: #2980b9;">📝 編集</button>
               <button class="btn-small btn-delete" onclick="deleteTask(${task.id})">削除</button>
             </div>
           </li>
@@ -911,10 +1204,16 @@
       }).join('');
     };
 
-    // モーダルの外側をク���ックで閉じる
+    // モーダルの外側をクリックで閉じる
     document.getElementById('addModal').addEventListener('click', (e) => {
       if (e.target.id === 'addModal') {
         closeAddModal();
+      }
+    });
+
+    document.getElementById('editModal').addEventListener('click', (e) => {
+      if (e.target.id === 'editModal') {
+        closeEditModal();
       }
     });
 

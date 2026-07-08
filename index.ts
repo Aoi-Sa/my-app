@@ -189,7 +189,7 @@ app.post("/api/tasks", async (req: any, res) => {
 app.put("/api/tasks/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, deadline, priority, is_completed } = req.body;
+    const { title, deadline, priority, is_completed, duration_minutes } = req.body;
 
     const task = await prisma.task.update({
       where: { id: parseInt(id) },
@@ -198,6 +198,7 @@ app.put("/api/tasks/:id", async (req, res) => {
         deadline: deadline ? new Date(deadline) : null,
         priority,
         is_completed,
+        duration_minutes: duration_minutes ? parseInt(duration_minutes) : 0,
       },
     });
 
