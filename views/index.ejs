@@ -158,7 +158,6 @@
       align-items: flex-start;
       gap: 15px;
       transition: all 0.3s;
-      cursor: pointer;
     }
 
     .task-item:hover {
@@ -476,6 +475,7 @@
 
     .subtask-item.completed {
       opacity: 0.5;
+      text-decoration: line-through;
     }
 
     .subtask-text {
@@ -583,9 +583,29 @@
     </div>
   </div>
 
+  <!-- モーダル：子タスク追加 -->
+  <div id="subtaskModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">📌 子タスクを追加</div>
+
+      <form onsubmit="handleAddSubtask(event)">
+        <div class="form-group">
+          <label for="subtaskInput">子タスク名 *</label>
+          <input type="text" id="subtaskInput" placeholder="例：参考文献を調べる" required autofocus>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" onclick="closeSubtaskModal()">キャンセル</button>
+          <button type="submit" class="btn-submit">追加する</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script>
     let tasks = [];
     let filter = 'all';
+    let currentParentId = null;
     const userId = new URLSearchParams(window.location.search).get('userId');
 
     if (!userId) {
@@ -648,6 +668,18 @@
       document.getElementById('priorityInput').value = '4';
     };
 
+    const openSubtaskModal = (parentId) => {
+      currentParentId = parentId;
+      document.getElementById('subtaskModal').classList.add('show');
+      document.getElementById('subtaskInput').focus();
+    };
+
+    const closeSubtaskModal = () => {
+      document.getElementById('subtaskModal').classList.remove('show');
+      document.getElementById('subtaskInput').value = '';
+      currentParentId = null;
+    };
+
     const handleAddTask = async (e) => {
       e.preventDefault();
 
@@ -687,6 +719,42 @@
       }
     };
 
+    const handleAddSubtask = async (e) => {
+      e.preventDefault();
+
+      const input = document.getElementById('subtaskInput');
+      const submitBtn = e.target.querySelector('.btn-submit');
+
+      submitBtn.disabled = true;
+
+      try {
+        const response = await fetch('/api/tasks', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: input.value.trim(),
+            parent_id: currentParentId,
+            userId: parseInt(userId),
+            deadline: null,
+            duration_minutes: 0,
+            priority: 4,
+          }),
+        });
+
+        if (!response.ok) throw new Error('Failed to create subtask');
+
+        const newSubtask = await response.json();
+        tasks.push(newSubtask);
+        render();
+        closeSubtaskModal();
+      } catch (err) {
+        console.error(err);
+        showError('子タスクの作成に失敗しました');
+      } finally {
+        submitBtn.disabled = false;
+      }
+    };
+
     const loadTasks = async () => {
       try {
         const response = await fetch(`/api/tasks?userId=${userId}`);
@@ -717,6 +785,15 @@
         if (!response.ok) throw new Error('Failed to update task');
 
         task.is_completed = !task.is_completed;
+
+        // 親タスク完了時、子タスクも削除
+        if (task.is_completed && !task.parent_id) {
+          const subtasks = tasks.filter(t => t.parent_id === task.id);
+          for (const subtask of subtasks) {
+            await deleteTask(subtask.id, true);
+          }
+        }
+
         render();
         updateStats();
       } catch (err) {
@@ -725,8 +802,8 @@
       }
     };
 
-    const deleteTask = async (id) => {
-      if (!confirm('このタスクを削除してもよろしいですか？')) return;
+    const deleteTask = async (id, silent = false) => {
+      if (!silent && !confirm('このタスクを削除してもよろしいですか？')) return;
 
       try {
         const response = await fetch(`/api/tasks/${id}`, {
@@ -736,11 +813,13 @@
         if (!response.ok) throw new Error('Failed to delete task');
 
         tasks = tasks.filter(t => t.id !== id);
-        render();
-        updateStats();
+        if (!silent) {
+          render();
+          updateStats();
+        }
       } catch (err) {
         console.error(err);
-        showError('タスクの削除に失敗しました');
+        if (!silent) showError('タスクの削除に失敗しました');
       }
     };
 
@@ -770,12 +849,6 @@
       document.getElementById('totalCount').textContent = tasks.filter(t => !t.parent_id).length;
       document.getElementById('completedCount').textContent = tasks.filter(t => t.is_completed && !t.parent_id).length;
       document.getElementById('remainingCount').textContent = tasks.filter(t => !t.is_completed && !t.parent_id).length;
-    };
-
-    const formatDate = (dateStr) => {
-      if (!dateStr) return '';
-      const date = new Date(dateStr);
-      return date.toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' });
     };
 
     const getUrgencyClass = (task) => {
@@ -830,7 +903,7 @@
               ${subtaskHtml}
             </div>
             <div class="task-actions">
-              <button class="btn-small" onclick="alert('子タスク機能は準備中です')">子</button>
+              <button class="btn-small" onclick="openSubtaskModal(${task.id})">➕ 子</button>
               <button class="btn-small btn-delete" onclick="deleteTask(${task.id})">削除</button>
             </div>
           </li>
@@ -838,10 +911,16 @@
       }).join('');
     };
 
-    // モーダルの外側をクリックで閉じる
+    // モーダルの外側をク���ックで閉じる
     document.getElementById('addModal').addEventListener('click', (e) => {
       if (e.target.id === 'addModal') {
         closeAddModal();
+      }
+    });
+
+    document.getElementById('subtaskModal').addEventListener('click', (e) => {
+      if (e.target.id === 'subtaskModal') {
+        closeSubtaskModal();
       }
     });
 
