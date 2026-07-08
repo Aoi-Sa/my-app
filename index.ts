@@ -161,7 +161,7 @@ app.get("/api/tasks", async (req: any, res) => {
 // タスクを作成
 app.post("/api/tasks", async (req: any, res) => {
   try {
-    const { title, deadline, priority, userId } = req.body;
+    const { title, deadline, priority, userId, parent_id } = req.body;
 
     if (!title || !userId) {
       res.status(400).json({ error: "Title and userId are required" });
@@ -174,6 +174,7 @@ app.post("/api/tasks", async (req: any, res) => {
         deadline: deadline ? new Date(deadline) : null,
         priority: priority || 3,
         userId: parseInt(userId),
+        parent_id: parent_id ? parseInt(parent_id) : null,
       },
     });
 
