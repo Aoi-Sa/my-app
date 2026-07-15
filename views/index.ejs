@@ -151,19 +151,60 @@
       color: #000;
     }
 
+    /* テーマパレット */
     .theme-selector {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
       background: #f5f5f5;
-      padding: 8px 16px;
+      padding: 8px 18px;
       border-radius: 20px;
+    }
+
+    body.dark-mode .theme-selector {
+      background: #1e1e1e;
+      border: 1px solid #333;
     }
 
     .theme-selector span {
       font-size: 0.85em;
       color: #666;
       font-weight: 600;
+    }
+
+    body.dark-mode .theme-selector span {
+      color: #aaa;
+    }
+
+    .color-palette {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .color-circle {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all 0.2s;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    }
+
+    .color-circle:hover {
+      transform: scale(1.25);
+    }
+
+    .color-circle.active {
+      border-color: #000;
+      transform: scale(1.15);
+      box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.8), 0 0 0 3.5px #000;
+    }
+
+    body.dark-mode .color-circle.active {
+      border-color: #fff;
+      box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.8), 0 0 0 3.5px #fff;
     }
 
     .logout-btn {
@@ -466,6 +507,43 @@
       margin-bottom: 30px;
       flex-wrap: wrap;
       align-items: center;
+    }
+
+    /* モーダル用タグチップスタイル */
+    .modal-tag-chips {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+
+    .modal-tag-chip {
+      background: #f0f0f0;
+      color: #333;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 0.8em;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 1px solid #ddd;
+    }
+
+    .modal-tag-chip:hover {
+      background: var(--theme-color-light);
+      color: var(--theme-color);
+      border-color: var(--theme-color-border);
+    }
+
+    body.dark-mode .modal-tag-chip {
+      background: #252525;
+      color: #ccc;
+      border-color: #444;
+    }
+
+    body.dark-mode .modal-tag-chip:hover {
+      background: var(--theme-color-light);
+      color: var(--theme-color);
     }
 
     .task-list {
@@ -847,10 +925,21 @@
       <div class="top-bar">
         <h1>ToDo</h1>
         
-        <!-- カラーホイール & ダークモードトグル -->
+        <!-- カラーパレット & ダークモードトグル -->
         <div class="theme-selector">
           <span>テーマカラー：</span>
-          <input type="color" id="themeColorPicker" onchange="updateThemeColors(this.value)" style="width: 40px; height: 26px; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; padding: 0; background: transparent;">
+          <div class="color-palette" id="colorPalette">
+            <div class="color-circle" data-color="#FF3399" style="background-color: #FF3399;" onclick="updateThemeColors('#FF3399')"></div>
+            <div class="color-circle" data-color="#E74C3C" style="background-color: #E74C3C;" onclick="updateThemeColors('#E74C3C')"></div>
+            <div class="color-circle" data-color="#E67E22" style="background-color: #E67E22;" onclick="updateThemeColors('#E67E22')"></div>
+            <div class="color-circle" data-color="#F1C40F" style="background-color: #F1C40F;" onclick="updateThemeColors('#F1C40F')"></div>
+            <div class="color-circle" data-color="#2ECC71" style="background-color: #2ECC71;" onclick="updateThemeColors('#2ECC71')"></div>
+            <div class="color-circle" data-color="#1ABC9C" style="background-color: #1ABC9C;" onclick="updateThemeColors('#1ABC9C')"></div>
+            <div class="color-circle" data-color="#3498DB" style="background-color: #3498DB;" onclick="updateThemeColors('#3498DB')"></div>
+            <div class="color-circle" data-color="#2980B9" style="background-color: #2980B9;" onclick="updateThemeColors('#2980B9')"></div>
+            <div class="color-circle" data-color="#9B59B6" style="background-color: #9B59B6;" onclick="updateThemeColors('#9B59B6')"></div>
+            <div class="color-circle" data-color="#34495E" style="background-color: #34495E;" onclick="updateThemeColors('#34495E')"></div>
+          </div>
           
           <span style="margin-left: 15px;">ダークモード：</span>
           <input type="checkbox" id="darkModeToggle" onchange="toggleDarkMode(this.checked)" style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--theme-color);">
@@ -957,11 +1046,11 @@
           </select>
         </div>
 
-        <!-- タグ入力欄 (Datalist サジェスト付き) -->
+        <!-- タグ入力欄 (ボックス・チップ選択付き) -->
         <div class="form-group">
           <label for="tagInput">タグ（任意）</label>
-          <input type="text" id="tagInput" list="existingTags" placeholder="例：仕事、プライベート、学習など">
-          <datalist id="existingTags"></datalist>
+          <input type="text" id="tagInput" placeholder="例：仕事、プライベート、学習など">
+          <div class="modal-tag-chips" id="addModalTagChips"></div>
         </div>
 
         <div class="form-group">
@@ -1043,11 +1132,11 @@
           </select>
         </div>
 
-        <!-- タグ入力欄 (Datalist サジェスト付き) -->
+        <!-- タグ入力欄 (ボックス・チップ選択付き) -->
         <div class="form-group">
           <label for="editTagInput">タグ（任意）</label>
-          <input type="text" id="editTagInput" list="editExistingTags" placeholder="例：仕事、プライベート、学習など">
-          <datalist id="editExistingTags"></datalist>
+          <input type="text" id="editTagInput" placeholder="例：仕事、プライベート、学習など">
+          <div class="modal-tag-chips" id="editModalTagChips"></div>
         </div>
 
         <div class="form-group">
@@ -1168,8 +1257,15 @@
       localStorage.setItem('theme-color-light', light);
       localStorage.setItem('theme-color-border', border);
       localStorage.setItem('theme-text-color', textColor);
-      
-      document.getElementById('themeColorPicker').value = primary;
+
+      // カラーサークルの active 表示切り替え
+      document.querySelectorAll('.color-circle').forEach(circle => {
+        if (circle.getAttribute('data-color').toLowerCase() === primary.toLowerCase()) {
+          circle.classList.add('active');
+        } else {
+          circle.classList.remove('active');
+        }
+      });
     };
 
     const toggleDarkMode = (isDark) => {
@@ -1293,6 +1389,7 @@
 
     const openAddModal = () => {
       document.getElementById('addModal').classList.add('show');
+      updateModalTagChips();
     };
 
     const closeAddModal = () => {
@@ -1360,6 +1457,7 @@
       document.getElementById('editTagInput').value = task.tag || '';
       document.getElementById('editPriorityInput').value = task.priority;
       document.getElementById('editModal').classList.add('show');
+      updateModalTagChips();
     };
 
     const closeEditModal = () => {
@@ -1436,7 +1534,7 @@
         tasks.push(newTask);
         render();
         renderTagFilters();
-        updateTagSuggestions();
+        updateModalTagChips();
         closeAddModal();
       } catch (err) {
         console.error(err);
@@ -1495,7 +1593,7 @@
 
         render();
         renderTagFilters();
-        updateTagSuggestions();
+        updateModalTagChips();
         closeEditModal();
       } catch (err) {
         console.error(err);
@@ -1548,7 +1646,7 @@
         tasks = await response.json();
         render();
         renderTagFilters();
-        updateTagSuggestions();
+        updateModalTagChips();
       } catch (err) {
         console.error(err);
         showError('タスクの読み込みに失敗しました');
@@ -1606,7 +1704,7 @@
         if (!silent) {
           render();
           renderTagFilters();
-          updateTagSuggestions();
+          updateModalTagChips();
         }
       } catch (err) {
         console.error(err);
@@ -1990,17 +2088,36 @@
       `;
     };
 
-    // サジェスト機能（既存のタグを入力補完するリスト）の更新
-    const updateTagSuggestions = () => {
+    // タグ自動入力処理
+    const setModalTagValue = (val, isEdit) => {
+      const input = document.getElementById(isEdit ? 'editTagInput' : 'tagInput');
+      if (input) {
+        input.value = val;
+      }
+    };
+
+    // モーダル用タグチップの更新
+    const updateModalTagChips = () => {
       const activeTags = [...new Set(tasks.map(t => t.tag).filter(Boolean))];
       
-      const datalist = document.getElementById('existingTags');
-      const editDatalist = document.getElementById('editExistingTags');
+      const chipsContainer = document.getElementById('addModalTagChips');
+      const editChipsContainer = document.getElementById('editModalTagChips');
       
-      if (datalist && editDatalist) {
-        const optionsHtml = activeTags.map(tag => `<option value="${tag}"></option>`).join('');
-        datalist.innerHTML = optionsHtml;
-        editDatalist.innerHTML = optionsHtml;
+      if (chipsContainer && editChipsContainer) {
+        if (activeTags.length === 0) {
+          chipsContainer.innerHTML = '<span style="font-size:0.8em; color:#999;">登録済みのタグはありません</span>';
+          editChipsContainer.innerHTML = '<span style="font-size:0.8em; color:#999;">登録済みのタグはありません</span>';
+          return;
+        }
+        
+        const renderChips = (isEdit) => {
+          return activeTags.map(tag => `
+            <span class="modal-tag-chip" onclick="setModalTagValue('${tag}', ${isEdit})">#${tag}</span>
+          `).join('');
+        };
+        
+        chipsContainer.innerHTML = renderChips(false);
+        editChipsContainer.innerHTML = renderChips(true);
       }
     };
 
