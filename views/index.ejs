@@ -842,6 +842,88 @@
       color: #555;
     }
 
+    /* チュートリアル表示スタイル */
+    .tutorial-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.4);
+      z-index: 9999;
+      display: none;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+
+    .tutorial-overlay.show {
+      display: block;
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .tutorial-tooltip {
+      position: absolute;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+      padding: 24px;
+      width: 330px;
+      z-index: 10000;
+      display: none;
+      flex-direction: column;
+      gap: 15px;
+      border-top: 4px solid var(--theme-color);
+      transition: all 0.3s ease;
+    }
+
+    body.dark-mode .tutorial-tooltip {
+      background: #1e1e1e;
+      border-top-color: var(--theme-color);
+    }
+
+    .tutorial-tooltip h3 {
+      font-size: 1.15em;
+      font-weight: 700;
+      color: #000;
+    }
+
+    body.dark-mode .tutorial-tooltip h3 {
+      color: #fff;
+    }
+
+    .tutorial-tooltip p {
+      font-size: 0.9em;
+      color: #444;
+      line-height: 1.5;
+    }
+
+    body.dark-mode .tutorial-tooltip p {
+      color: #bbb;
+    }
+
+    .tutorial-buttons {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 10px;
+    }
+
+    .tutorial-step-dot {
+      font-size: 0.85em;
+      color: #888;
+      font-weight: 600;
+    }
+
+    .tutorial-highlight {
+      position: relative;
+      z-index: 10000 !important;
+      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5), 0 0 15px rgba(255, 255, 255, 0.6) !important;
+      pointer-events: none;
+      transition: box-shadow 0.3s ease, z-index 0.3s ease;
+    }
+
     @media (max-width: 1024px) {
       .main-container {
         flex-direction: column;
@@ -1188,6 +1270,18 @@
           <button type="submit" class="btn-submit" id="routineSubmitBtn">追加する</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- チュートリアル HTML -->
+  <div id="tutorialOverlay" class="tutorial-overlay"></div>
+  <div id="tutorialTooltip" class="tutorial-tooltip">
+    <h3 id="tutorialTitle">使い方ガイド</h3>
+    <p id="tutorialText">ここに説明が表示されます。</p>
+    <div class="tutorial-buttons">
+      <button class="btn-small btn-delete" onclick="skipTutorial()">スキップ</button>
+      <span class="tutorial-step-dot" id="tutorialStepDot">1 / 6</span>
+      <button class="btn-small" id="tutorialNextBtn" onclick="nextTutorialStep()">次へ</button>
     </div>
   </div>
 
@@ -2165,6 +2259,181 @@
       taskList.innerHTML = sorted.map(task => renderTaskItem(task)).join('');
     };
 
+    // ========== チュートリアル（ガイド）ロジック ==========
+    let tutorialStep = 0;
+    const tutorialSteps = [
+      {
+        title: "ToDoへようこそ！ 🎉",
+        text: "あなたのタスクと習慣を美しく管理するお手伝いをします。簡単な使い方をご紹介します！",
+        target: null
+      },
+      {
+        title: "テーマカラー 🎨",
+        text: "厳選された10色からお好みのテーマカラーを選択できます。明るい色を選んでも自動で文字色が見やすく調整されます！",
+        target: ".theme-selector"
+      },
+      {
+        title: "Routine (習慣) 💮",
+        text: "毎日繰り返す習慣を管理します。100%達成すると、カレンダーの日付がテーマカラーで染まり記録されます！",
+        target: ".routine-panel"
+      },
+      {
+        title: "ToDoタスクの追加 ➕",
+        text: "「新規追加」ボタンからタスクを追加します。期限や想定時間、タグなどを設定できます。",
+        target: ".add-btn"
+      },
+      {
+        title: "期限が近いタスク ⏰",
+        text: "期限が翌日（明日）になっているタスクは自動的に『期限が近いタスク』とバッジ表示され、このタブに集約されます！",
+        target: ".filters button:nth-child(4)"
+      },
+      {
+        title: "チュートリアルの完了 🚀",
+        text: "使い方は以上です！さっそくタスクを登録して、素晴らしい一日をスタートさせましょう！",
+        target: null
+      }
+    ];
+
+    const startTutorial = () => {
+      tutorialStep = 0;
+      document.getElementById('tutorialOverlay').classList.add('show');
+      document.getElementById('tutorialTooltip').style.display = 'flex';
+      renderTutorialStep();
+    };
+
+    const renderTutorialStep = () => {
+      const step = tutorialSteps[tutorialStep];
+      
+      // 以前のハイライトをクリア
+      document.querySelectorAll('.tutorial-highlight').forEach(el => {
+        el.classList.remove('tutorial-highlight');
+      });
+
+      document.getElementById('tutorialTitle').textContent = step.title;
+      document.getElementById('tutorialText').textContent = step.text;
+      document.getElementById('tutorialStepDot').textContent = `${tutorialStep + 1} / ${tutorialSteps.length}`;
+      
+      const nextBtn = document.getElementById('tutorialNextBtn');
+      if (tutorialStep === tutorialSteps.length - 1) {
+        nextBtn.textContent = '完了';
+      } else {
+        nextBtn.textContent = '次へ';
+      }
+
+      const tooltip = document.getElementById('tutorialTooltip');
+      
+      if (step.target) {
+        const targetEl = document.querySelector(step.target);
+        if (targetEl) {
+          targetEl.classList.add('tutorial-highlight');
+          
+          const rect = targetEl.getBoundingClientRect();
+          const scrollY = window.scrollY;
+          const scrollX = window.scrollX;
+          
+          let top = rect.bottom + scrollY + 15;
+          let left = rect.left + scrollX;
+          
+          if (left + 340 > window.innerWidth) {
+            left = window.innerWidth - 350;
+          }
+          if (left < 10) left = 10;
+
+          if (top + 180 > window.innerHeight + scrollY) {
+            top = rect.top + scrollY - 210;
+          }
+          
+          tooltip.style.top = `${top}px`;
+          tooltip.style.left = `${left}px`;
+          tooltip.style.transform = '';
+          tooltip.style.position = 'absolute';
+          
+          targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else {
+          centerTooltip();
+        }
+      } else {
+        centerTooltip();
+      }
+    };
+
+    const centerTooltip = () => {
+      const tooltip = document.getElementById('tutorialTooltip');
+      tooltip.style.top = '50%';
+      tooltip.style.left = '50%';
+      tooltip.style.transform = 'translate(-50%, -50%)';
+      tooltip.style.position = 'fixed';
+    };
+
+    const nextTutorialStep = () => {
+      tutorialStep++;
+      if (tutorialStep >= tutorialSteps.length) {
+        finishTutorial();
+      } else {
+        renderTutorialStep();
+      }
+    };
+
+    const skipTutorial = () => {
+      finishTutorial();
+    };
+
+    const finishTutorial = () => {
+      document.querySelectorAll('.tutorial-highlight').forEach(el => {
+        el.classList.remove('tutorial-highlight');
+      });
+
+      document.getElementById('tutorialOverlay').classList.remove('show');
+      document.getElementById('tutorialTooltip').style.display = 'none';
+      
+      localStorage.setItem('tutorial-completed', 'true');
+      
+      // URLのisNewパラメータを削除してクリーンアップ
+      const url = new URL(window.location.href);
+      url.searchParams.delete('isNew');
+      window.history.replaceState({}, document.title, url.toString());
+
+      // 新規登録者へのサンプルタスク作成（おもてなし）
+      createSampleData();
+    };
+
+    const createSampleData = async () => {
+      if (tasks.length > 0 || routines.length > 0) return;
+
+      try {
+        // サンプルタスク
+        await fetch('/api/tasks', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: "ToDoチュートリアルを読む",
+            deadline: null,
+            priority: 3,
+            duration_minutes: 10,
+            tag: "チュートリアル",
+            userId: parseInt(userId),
+          }),
+        });
+
+        // サンプルルーティン
+        await fetch('/api/routines', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: "コップ1杯の水を飲む",
+            frequency: "daily",
+            endDate: null,
+            userId: parseInt(userId),
+          }),
+        });
+
+        loadTasks();
+        loadRoutines();
+      } catch (err) {
+        console.error("Failed to create sample data", err);
+      }
+    };
+
     // モーダルの外側をクリックで閉じる
     document.getElementById('addModal').addEventListener('click', (e) => {
       if (e.target.id === 'addModal') {
@@ -2194,6 +2463,17 @@
     loadTasks();
     loadRoutines();
     loadCompletions();
+
+    // チュートリアルの起動判定
+    window.addEventListener('load', () => {
+      const isNew = new URLSearchParams(window.location.search).get('isNew') === 'true';
+      const isCompleted = localStorage.getItem('tutorial-completed') === 'true';
+      if (isNew && !isCompleted) {
+        setTimeout(() => {
+          startTutorial();
+        }, 800);
+      }
+    });
 
     // 1分ごとにカウントダウンを更新
     setInterval(() => {

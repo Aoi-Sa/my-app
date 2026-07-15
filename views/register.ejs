@@ -307,7 +307,7 @@
 
         // 1秒後にリダイレクト
         setTimeout(() => {
-          window.location.href = `/?userId=${data.userId}`;
+          window.location.href = `/?userId=${data.userId}&isNew=true`;
         }, 1000);
       } catch (err) {
         console.error(err);
