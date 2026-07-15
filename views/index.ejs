@@ -2392,46 +2392,6 @@
       const url = new URL(window.location.href);
       url.searchParams.delete('isNew');
       window.history.replaceState({}, document.title, url.toString());
-
-      // 新規登録者へのサンプルタスク作成（おもてなし）
-      createSampleData();
-    };
-
-    const createSampleData = async () => {
-      if (tasks.length > 0 || routines.length > 0) return;
-
-      try {
-        // サンプルタスク
-        await fetch('/api/tasks', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            title: "ToDoチュートリアルを読む",
-            deadline: null,
-            priority: 3,
-            duration_minutes: 10,
-            tag: "チュートリアル",
-            userId: parseInt(userId),
-          }),
-        });
-
-        // サンプルルーティン
-        await fetch('/api/routines', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            title: "コップ1杯の水を飲む",
-            frequency: "daily",
-            endDate: null,
-            userId: parseInt(userId),
-          }),
-        });
-
-        loadTasks();
-        loadRoutines();
-      } catch (err) {
-        console.error("Failed to create sample data", err);
-      }
     };
 
     // モーダルの外側をクリックで閉じる
