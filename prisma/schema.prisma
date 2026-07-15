@@ -35,6 +35,7 @@ model Task {
   priority        Int       @default(3) // 1-3, 低から高
   duration_minutes Int      @default(0)
   is_completed    Boolean   @default(false)
+  tag             String?   // 任意のカテゴリ用タグ
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 

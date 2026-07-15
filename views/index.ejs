@@ -360,7 +360,7 @@
     .filters {
       display: flex;
       gap: 10px;
-      margin-bottom: 30px;
+      margin-bottom: 20px;
       flex-wrap: wrap;
       align-items: center;
     }
@@ -397,6 +397,7 @@
       background: #f5f5f5;
       padding: 6px 14px;
       border-radius: 20px;
+      white-space: nowrap; /* 一行に収まるように折り返しを防止 */
     }
 
     .sort-container label {
@@ -435,6 +436,36 @@
       background: var(--theme-color-hover);
       transform: translateY(-2px);
       box-shadow: 0 4px 12px var(--theme-color-shadow);
+    }
+
+    /* タグバッジとタグフィルター */
+    .task-tag {
+      background: var(--theme-color-light);
+      color: var(--theme-color);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.85em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .task-tag:hover {
+      background: var(--theme-color);
+      color: var(--theme-text-color);
+    }
+
+    body.dark-mode .task-tag {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--theme-color);
+    }
+
+    .tag-filter-container {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+      align-items: center;
     }
 
     .task-list {
@@ -517,6 +548,7 @@
       display: flex;
       gap: 15px;
       flex-wrap: wrap;
+      align-items: center;
     }
 
     .priority-critical {
@@ -849,6 +881,11 @@
         <button class="add-btn" onclick="openAddModal()">新規追加</button>
       </div>
 
+      <!-- タグフィルターバブルエリア -->
+      <div class="tag-filter-container" id="tagFilterContainer">
+        <!-- 動的タグフィルター -->
+      </div>
+
       <!-- タスクリスト -->
       <ul class="task-list" id="taskList">
         <div class="empty-state">
@@ -918,6 +955,12 @@
             <option value="170">170分</option>
             <option value="180">180分 (3時間)</option>
           </select>
+        </div>
+
+        <!-- タグ入力欄 (Optional) -->
+        <div class="form-group">
+          <label for="tagInput">タグ（任意）</label>
+          <input type="text" id="tagInput" placeholder="例：仕事、プライベート、学習など">
         </div>
 
         <div class="form-group">
@@ -997,6 +1040,12 @@
             <option value="170">170分</option>
             <option value="180">180分 (3時間)</option>
           </select>
+        </div>
+
+        <!-- タグ入力欄 (Optional) -->
+        <div class="form-group">
+          <label for="editTagInput">タグ（任意）</label>
+          <input type="text" id="editTagInput" placeholder="例：仕事、プライベート、学習など">
         </div>
 
         <div class="form-group">
@@ -1146,6 +1195,7 @@
     let routines = [];
     let completions = [];
     let filter = 'all';
+    let selectedTag = null; // 現在選択されているタグフィルター
     let sortBy = 'created';
     let currentParentId = null;
     let editingTaskId = null;
@@ -1253,6 +1303,7 @@
       document.getElementById('deadlineMinute').style.display = 'block';
       document.getElementById('allDayCheckbox').checked = false;
       document.getElementById('durationInput').value = '0';
+      document.getElementById('tagInput').value = '';
       document.getElementById('priorityInput').value = '4';
     };
 
@@ -1304,6 +1355,7 @@
       }
 
       document.getElementById('editDurationInput').value = task.duration_minutes || '0';
+      document.getElementById('editTagInput').value = task.tag || '';
       document.getElementById('editPriorityInput').value = task.priority;
       document.getElementById('editModal').classList.add('show');
     };
@@ -1346,6 +1398,7 @@
       const hourVal = document.getElementById('deadlineHour').value;
       const minuteVal = document.getElementById('deadlineMinute').value;
       const duration = document.getElementById('durationInput');
+      const tag = document.getElementById('tagInput').value.trim() || null;
       const priority = document.getElementById('priorityInput');
       const allDay = document.getElementById('allDayCheckbox').checked;
       const submitBtn = document.getElementById('submitBtn');
@@ -1370,6 +1423,7 @@
             deadline: deadlineValue,
             priority: parseInt(priority.value),
             duration_minutes: parseInt(duration.value) || 0,
+            tag,
             userId: parseInt(userId),
           }),
         });
@@ -1379,6 +1433,7 @@
         const newTask = await response.json();
         tasks.push(newTask);
         render();
+        renderTagFilters();
         closeAddModal();
       } catch (err) {
         console.error(err);
@@ -1397,6 +1452,7 @@
       const hourVal = document.getElementById('editDeadlineHour').value;
       const minuteVal = document.getElementById('editDeadlineMinute').value;
       const duration = document.getElementById('editDurationInput');
+      const tag = document.getElementById('editTagInput').value.trim() || null;
       const priority = document.getElementById('editPriorityInput');
       const allDay = document.getElementById('editAllDayCheckbox').checked;
       const submitBtn = document.getElementById('editSubmitBtn');
@@ -1421,6 +1477,7 @@
             deadline: deadlineValue,
             priority: parseInt(priority.value),
             duration_minutes: parseInt(duration.value) || 0,
+            tag,
           }),
         });
 
@@ -1429,7 +1486,13 @@
         const updatedTask = await response.json();
         tasks = tasks.map(t => t.id === editingTaskId ? updatedTask : t);
 
+        // もし選択中のタグが削除された場合、選択解除する
+        if (selectedTag && !tasks.some(t => t.tag === selectedTag)) {
+          selectedTag = null;
+        }
+
         render();
+        renderTagFilters();
         closeEditModal();
       } catch (err) {
         console.error(err);
@@ -1481,6 +1544,7 @@
         if (!response.ok) throw new Error('Failed to load tasks');
         tasks = await response.json();
         render();
+        renderTagFilters();
       } catch (err) {
         console.error(err);
         showError('タスクの読み込みに失敗しました');
@@ -1530,8 +1594,15 @@
         if (!response.ok) throw new Error('Failed to delete task');
 
         tasks = tasks.filter(t => t.id !== id);
+        
+        // 削除によって選択中のタグフィルターのデータがゼロになった場合、リセット
+        if (selectedTag && !tasks.some(t => t.tag === selectedTag)) {
+          selectedTag = null;
+        }
+
         if (!silent) {
           render();
+          renderTagFilters();
         }
       } catch (err) {
         console.error(err);
@@ -1824,11 +1895,13 @@
 
     const setFilter = (newFilter) => {
       filter = newFilter;
+      selectedTag = null; // タブを切り替えたらタグフィルターはリセット
       document.querySelectorAll('.filter-btn').forEach(btn => {
         btn.classList.remove('active');
       });
       event.target.classList.add('active');
       render();
+      renderTagFilters();
     };
 
     const setSort = (newSort) => {
@@ -1840,16 +1913,25 @@
       return tasks.filter(task => {
         if (task.parent_id) return false;
         
-        // 完了カテゴリ（タブ）のみ、完了タスクを表示
-        if (filter === 'completed') return task.is_completed;
-        
-        // それ以外のタブ（すべて、未完了、緊急）では、完了済みタスクは非表示にする
-        if (task.is_completed) return false;
+        // 完了カテゴリのみ、完了タスクを表示
+        if (filter === 'completed') {
+          if (!task.is_completed) return false;
+        } else {
+          // それ以外のタブ（すべて、未完了、緊急）では、完了済みタスクは非表示
+          if (task.is_completed) return false;
+        }
         
         if (filter === 'urgent') {
           const countdown = getCountdownInfo(task.deadline);
-          return countdown.class === 'urgent' || countdown.class === 'overdue' || task.priority === 1;
+          const isUrgent = countdown.class === 'urgent' || countdown.class === 'overdue' || task.priority === 1;
+          if (!isUrgent) return false;
         }
+
+        // タグ絞り込みの適用
+        if (selectedTag && task.tag !== selectedTag) {
+          return false;
+        }
+
         return true;
       });
     };
@@ -1874,9 +1956,46 @@
       return countdown.class || '';
     };
 
+    // タグ選択
+    const selectTag = (tag) => {
+      selectedTag = tag;
+      render();
+      renderTagFilters();
+    };
+
+    // 動的タグフィルターバブルの描画
+    const renderTagFilters = () => {
+      const container = document.getElementById('tagFilterContainer');
+      
+      // 現在のフィルター（タブ）で有効なタスクから抽出
+      const currentFilteredTasks = tasks.filter(task => {
+        if (task.parent_id) return false;
+        if (filter === 'completed') return task.is_completed;
+        return !task.is_completed;
+      });
+
+      const activeTags = [...new Set(currentFilteredTasks.map(t => t.tag).filter(Boolean))];
+
+      if (activeTags.length === 0) {
+        container.style.display = 'none';
+        container.innerHTML = '';
+        return;
+      }
+
+      container.style.display = 'flex';
+      container.innerHTML = `
+        <span style="font-size: 0.85em; font-weight: 600; color: #666; margin-right: 5px;">タグ絞り込み:</span>
+        <button class="filter-btn ${!selectedTag ? 'active' : ''}" onclick="selectTag(null)" style="padding: 4px 12px; font-size: 0.8em; border-radius: 12px;">すべて</button>
+        ${activeTags.map(tag => `
+          <button class="filter-btn ${selectedTag === tag ? 'active' : ''}" onclick="selectTag('${tag}')" style="padding: 4px 12px; font-size: 0.8em; border-radius: 12px;">#${tag}</button>
+        `).join('')}
+      `;
+    };
+
     const renderTaskItem = (task) => {
       const countdown = getCountdownInfo(task.deadline);
       const urgencyClass = getUrgencyClass(task);
+      const tagBadge = task.tag ? `<span class="task-tag" onclick="selectTag('${task.tag}')">#${task.tag}</span>` : '';
 
       const subtasks = tasks.filter(t => t.parent_id === task.id);
       const subtaskHtml = subtasks.length > 0 ? `
@@ -1902,6 +2021,7 @@
               <span class="${getPriorityClass(task.priority)}">${getPriorityLabel(task.priority)}</span>
               ${task.deadline ? `<span class="countdown ${countdown.class}">${countdown.text}</span>` : ''}
               ${task.duration_minutes > 0 ? `<span>${task.duration_minutes}分</span>` : ''}
+              ${tagBadge}
             </div>
             ${subtaskHtml}
           </div>

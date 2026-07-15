@@ -161,7 +161,7 @@ app.get("/api/tasks", async (req: any, res) => {
 // タスクを作成
 app.post("/api/tasks", async (req: any, res) => {
   try {
-    const { title, deadline, priority, userId, parent_id } = req.body;
+    const { title, deadline, priority, userId, parent_id, duration_minutes, tag } = req.body;
 
     if (!title || !userId) {
       res.status(400).json({ error: "Title and userId are required" });
@@ -175,6 +175,8 @@ app.post("/api/tasks", async (req: any, res) => {
         priority: priority || 3,
         userId: parseInt(userId),
         parent_id: parent_id ? parseInt(parent_id) : null,
+        duration_minutes: duration_minutes ? parseInt(duration_minutes) : 0,
+        tag: tag ? String(tag).trim() : null,
       },
     });
 
@@ -189,7 +191,7 @@ app.post("/api/tasks", async (req: any, res) => {
 app.put("/api/tasks/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, deadline, priority, is_completed, duration_minutes } = req.body;
+    const { title, deadline, priority, is_completed, duration_minutes, tag } = req.body;
 
     const task = await prisma.task.update({
       where: { id: parseInt(id) },
@@ -199,6 +201,7 @@ app.put("/api/tasks/:id", async (req, res) => {
         priority,
         is_completed,
         duration_minutes: duration_minutes ? parseInt(duration_minutes) : 0,
+        tag: tag !== undefined ? (tag ? String(tag).trim() : null) : undefined,
       },
     });
 
