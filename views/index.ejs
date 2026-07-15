@@ -550,6 +550,7 @@
       list-style: none;
     }
 
+    /* タスクの左側のラインと背景色をテーマカラー＆通常背景に統一 */
     .task-item {
       background: #f5f5f5;
       padding: 20px;
@@ -579,26 +580,6 @@
     .task-item.completed .task-text {
       text-decoration: line-through;
       color: #888;
-    }
-
-    .task-item.urgent {
-      border-left-color: #e74c3c;
-      background: #fdf6f6;
-    }
-
-    .task-item.warning {
-      border-left-color: #f39c12;
-      background: #fdfaf6;
-    }
-
-    .task-item.safe {
-      border-left-color: #27ae60;
-      background: #f6fdf8;
-    }
-
-    .task-item.critical {
-      border-left-color: #c0392b;
-      background: #fdf5f5;
     }
 
     .task-checkbox {
@@ -649,17 +630,13 @@
       font-weight: 600;
     }
 
+    /* 期限カプセル（バッジ）をテーマカラーに統一 */
     .countdown {
       background: var(--theme-color-light);
       padding: 4px 10px;
       border-radius: 6px;
       font-weight: 600;
       color: var(--theme-color);
-    }
-
-    .countdown.overdue {
-      background: #ffebee;
-      color: #c0392b;
     }
 
     .btn-small {
@@ -955,7 +932,7 @@
         <button class="filter-btn active" onclick="setFilter('all')">すべて</button>
         <button class="filter-btn" onclick="setFilter('active')">未完了</button>
         <button class="filter-btn" onclick="setFilter('completed')">完了</button>
-        <button class="filter-btn" onclick="setFilter('urgent')">緊急</button>
+        <button class="filter-btn" onclick="setFilter('urgent')">期限が近いタスク</button>
 
         <!-- ソート -->
         <div class="sort-container">
@@ -1329,8 +1306,9 @@
       return classes[priority] || '';
     };
 
+    // カウントダウンおよび期限バッジ表示判定
     const getCountdownInfo = (deadline) => {
-      if (!deadline) return { text: '期限なし', class: '', daysLeft: null };
+      if (!deadline) return { text: '期限なし', daysLeft: null };
 
       const now = new Date();
       const deadlineDate = new Date(deadline);
@@ -1351,27 +1329,31 @@
       };
 
       if (diffTime < 0) {
-        return { text: `期限切れ (${formatDeadline(deadlineDate)})`, class: 'overdue', daysLeft: -1 };
+        return { text: `期限切れ (${formatDeadline(deadlineDate)})`, daysLeft: -1 };
       }
 
       const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
       const diffMinutes = Math.floor((diffTime / (1000 * 60)) % 60);
 
+      // 翌日（明日）の判定
+      const todayZero = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const deadlineZero = new Date(deadlineDate.getFullYear(), deadlineDate.getMonth(), deadlineDate.getDate());
+      const diffDaysZero = Math.floor((deadlineZero - todayZero) / (1000 * 60 * 60 * 24));
+
+      if (diffDaysZero === 1) {
+        // 翌日（明日）が期限の場合は「期限が近いタスク」と表示
+        return { text: `期限が近いタスク (${formatDeadline(deadlineDate)})`, daysLeft: 1 };
+      }
+
       if (diffHours < 24) {
         if (diffHours === 0) {
-          return { text: `あと${diffMinutes}分 (${formatDeadline(deadlineDate)})`, class: 'urgent', daysLeft: 0 };
+          return { text: `あと${diffMinutes}分 (${formatDeadline(deadlineDate)})`, daysLeft: 0 };
         }
-        return { text: `あと${diffHours}時間${diffMinutes}分 (${formatDeadline(deadlineDate)})`, class: 'urgent', daysLeft: 0 };
+        return { text: `あと${diffHours}時間${diffMinutes}分 (${formatDeadline(deadlineDate)})`, daysLeft: 0 };
       }
 
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      if (diffDays <= 3) {
-        return { text: `あと${diffDays}日 (${formatDeadline(deadlineDate)})`, class: 'urgent', daysLeft: diffDays };
-      } else if (diffDays <= 7) {
-        return { text: `あと${diffDays}日 (${formatDeadline(deadlineDate)})`, class: 'warning', daysLeft: diffDays };
-      } else {
-        return { text: `あと${diffDays}日 (${formatDeadline(deadlineDate)})`, class: 'safe', daysLeft: diffDays };
-      }
+      return { text: `あと${diffDays}日 (${formatDeadline(deadlineDate)})`, daysLeft: diffDays };
     };
 
     const showError = (message) => {
@@ -2021,10 +2003,19 @@
           if (task.is_completed) return false;
         }
         
+        // 「期限が近いタスク」タブ：翌日（明日）以前（翌日、当日、または期限切れ）が対象
         if (filter === 'urgent') {
-          const countdown = getCountdownInfo(task.deadline);
-          const isUrgent = countdown.class === 'urgent' || countdown.class === 'overdue' || task.priority === 1;
-          if (!isUrgent) return false;
+          if (!task.deadline) return false;
+          
+          const now = new Date();
+          const deadlineDate = new Date(task.deadline);
+          
+          const todayZero = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          const deadlineZero = new Date(deadlineDate.getFullYear(), deadlineDate.getMonth(), deadlineDate.getDate());
+          const diffDaysZero = Math.floor((deadlineZero - todayZero) / (1000 * 60 * 60 * 24));
+          
+          // 翌日（明日）以前は diffDaysZero <= 1
+          if (diffDaysZero > 1) return false;
         }
 
         if (selectedTag && task.tag !== selectedTag) {
@@ -2047,12 +2038,6 @@
         }
         return new Date(b.createdAt) - new Date(a.createdAt);
       });
-    };
-
-    const getUrgencyClass = (task) => {
-      if (task.priority === 1) return 'critical';
-      const countdown = getCountdownInfo(task.deadline);
-      return countdown.class || '';
     };
 
     const selectTag = (tag) => {
@@ -2123,7 +2108,6 @@
 
     const renderTaskItem = (task) => {
       const countdown = getCountdownInfo(task.deadline);
-      const urgencyClass = getUrgencyClass(task);
       const tagBadge = task.tag ? `<span class="task-tag" onclick="selectTag('${task.tag}')">#${task.tag}</span>` : '';
 
       const subtasks = tasks.filter(t => t.parent_id === task.id);
@@ -2141,14 +2125,14 @@
       ` : '';
 
       return `
-        <li class="task-item ${task.is_completed ? 'completed' : ''} ${urgencyClass}">
+        <li class="task-item ${task.is_completed ? 'completed' : ''}">
           <input type="checkbox" class="task-checkbox" ${task.is_completed ? 'checked' : ''} 
                  onchange="toggleTask(${task.id})">
           <div class="task-content">
             <div class="task-text">${task.title}</div>
             <div class="task-meta">
               <span class="${getPriorityClass(task.priority)}">${getPriorityLabel(task.priority)}</span>
-              ${task.deadline ? `<span class="countdown ${countdown.class}">${countdown.text}</span>` : ''}
+              ${task.deadline ? `<span class="countdown">${countdown.text}</span>` : ''}
               ${task.duration_minutes > 0 ? `<span>${task.duration_minutes}分</span>` : ''}
               ${tagBadge}
             </div>
